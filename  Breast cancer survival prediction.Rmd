@@ -1,0 +1,77 @@
+---
+title: "Breast cancer survival prediction"
+author: "Tong Su"
+date: "2024-12-19"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+# Load required libraries
+library(dplyr)
+library(ggplot2)
+library(survival)
+library(survminer)
+library(caret)
+library(ROCR)
+library(tidyr)
+library(reshape2)
+```
+
+```{r}
+# Load dataset
+data <- read.csv("./data/Project_2_data.csv")
+```
+
+# 1. Descriptive Summary
+```{r}
+summary_stats <- data |> 
+  summarise_all(list(mean = ~mean(as.numeric(.), na.rm = TRUE), 
+                     median = ~median(as.numeric(.), na.rm = TRUE), 
+                     count = ~sum(!is.na(.))))
+summary_stats
+```
+
+# 2. Data Visualization
+```{r}
+# Distribution of continuous variables
+numeric_vars <- data |> select_if(is.numeric)
+
+# Histogram for continuous variables
+for (col in names(numeric_vars)) {
+  ggplot(data, aes_string(x = col)) +
+    geom_histogram(bins = 30, fill = "blue", color = "black") +
+    ggtitle(paste("Distribution of", col)) +
+    theme_minimal()
+}
+
+# Correlation heatmap
+cor_matrix <- cor(numeric_vars, use = "complete.obs")
+ggplot(melt(cor_matrix), aes(Var1, Var2, fill = value)) + 
+  geom_tile() + 
+  scale_fill_gradient2() + 
+  ggtitle("Correlation Heatmap") + 
+  theme_minimal()
+```
+
+# 3. Model Building: Survival Analysis
+```{r}
+# Convert Status to binary (Dead = 1, Alive = 0)
+data$Status <- ifelse(data$Status == "Dead", 1, 0)
+
+# Build Cox Proportional Hazards model
+cox_model <- coxph(Surv(Survival.Months, Status) ~ ., data = data)
+summary(cox_model)
+
+# Save model summary
+tidy_cox <- broom::tidy(cox_model)
+write.csv(tidy_cox, "cox_model_summary.csv")
+
+# Evaluate Model Performance
+# Concordance index
+c_index <- summary(cox_model)$concordance
+cat("Concordance Index:", c_index, "\n")
+```
+
+# 4. Fairness Analysis
+
+
