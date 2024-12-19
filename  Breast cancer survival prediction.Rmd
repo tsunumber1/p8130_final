@@ -15,6 +15,7 @@ library(caret)
 library(ROCR)
 library(tidyr)
 library(reshape2)
+library(corrplot)
 ```
 
 ```{r}
@@ -29,6 +30,9 @@ summary_stats <- data |>
                      median = ~median(as.numeric(.), na.rm = TRUE), 
                      count = ~sum(!is.na(.))))
 summary_stats
+
+#correlation table
+
 ```
 
 # 2. Data Visualization
@@ -44,6 +48,18 @@ for (col in names(numeric_vars)) {
     theme_minimal()
 }
 
+# Scatter plot for continuous variables
+predictors = c("Age", "Tumor.Size", "Regional.Node.Examined", "Reginol.Node.Positive")
+sorted_data = melt(data, id.vars = "Survival.Months", measure.vars = predictors)
+ggplot(sorted_data, aes(x = value, y = Survival.Months)) +
+  geom_point(alpha = 1) +
+  geom_smooth(method = "lm", color = "blue") +
+  facet_wrap(~variable, scales = "free_x") +  
+  labs(title = "Scatter Plots of Predictors vs Survival Time",
+       x = "Predictor Value",
+       y = "Survival Time (Months)") +
+  theme_minimal()
+
 # Correlation heatmap
 cor_matrix <- cor(numeric_vars, use = "complete.obs")
 ggplot(melt(cor_matrix), aes(Var1, Var2, fill = value)) + 
@@ -51,6 +67,10 @@ ggplot(melt(cor_matrix), aes(Var1, Var2, fill = value)) +
   scale_fill_gradient2() + 
   ggtitle("Correlation Heatmap") + 
   theme_minimal()
+
+# Correlation heatmap with correlation coefficient
+corrplot(cor_matrix, method = "number", type = "full", tl.col = "black", tl.srt = 45, title = "Correlation Heatmap")
+
 ```
 
 # 3. Model Building: Survival Analysis
