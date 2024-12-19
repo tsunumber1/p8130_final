@@ -26,6 +26,7 @@ data <- read.csv("./data/Project_2_data.csv")
 # 1. Descriptive Summary
 ```{r}
 summary_stats <- data |> 
+  select_if(is.numeric) |>
   summarise_all(list(mean = ~mean(as.numeric(.), na.rm = TRUE), 
                      median = ~median(as.numeric(.), na.rm = TRUE), 
                      count = ~sum(!is.na(.))))
