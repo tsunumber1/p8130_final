@@ -12,49 +12,149 @@ data <- read.csv("./data/Project_2_data.csv")
 
 ``` r
 summary_stats <- data |> 
+  select_if(is.numeric) |>
   summarise_all(list(mean = ~mean(as.numeric(.), na.rm = TRUE), 
                      median = ~median(as.numeric(.), na.rm = TRUE), 
                      count = ~sum(!is.na(.))))
-```
-
-    ## Warning: There were 22 warnings in `summarise()`.
-    ## The first warning was:
-    ## ℹ In argument: `Race_mean = (structure(function (..., .x = ..1, .y = ..2, . =
-    ##   ..1) ...`.
-    ## Caused by warning in `mean()`:
-    ## ! NAs introduced by coercion
-    ## ℹ Run `dplyr::last_dplyr_warnings()` to see the 21 remaining warnings.
-
-``` r
 summary_stats
 ```
 
-    ##   Age_mean Race_mean Marital.Status_mean T.Stage_mean N.Stage_mean
-    ## 1 53.97217       NaN                 NaN          NaN          NaN
-    ##   X6th.Stage_mean differentiate_mean Grade_mean A.Stage_mean Tumor.Size_mean
-    ## 1             NaN                NaN   2.141823          NaN        30.47366
-    ##   Estrogen.Status_mean Progesterone.Status_mean Regional.Node.Examined_mean
-    ## 1                  NaN                      NaN                    14.35711
-    ##   Reginol.Node.Positive_mean Survival.Months_mean Status_mean Age_median
-    ## 1                   4.158052             71.29796         NaN         54
-    ##   Race_median Marital.Status_median T.Stage_median N.Stage_median
-    ## 1          NA                    NA             NA             NA
-    ##   X6th.Stage_median differentiate_median Grade_median A.Stage_median
-    ## 1                NA                   NA            2             NA
-    ##   Tumor.Size_median Estrogen.Status_median Progesterone.Status_median
-    ## 1                25                     NA                         NA
+    ##   Age_mean Tumor.Size_mean Regional.Node.Examined_mean
+    ## 1 53.97217        30.47366                    14.35711
+    ##   Reginol.Node.Positive_mean Survival.Months_mean Age_median Tumor.Size_median
+    ## 1                   4.158052             71.29796         54                25
     ##   Regional.Node.Examined_median Reginol.Node.Positive_median
     ## 1                            14                            2
-    ##   Survival.Months_median Status_median Age_count Race_count
-    ## 1                     73            NA      4024       4024
-    ##   Marital.Status_count T.Stage_count N.Stage_count X6th.Stage_count
-    ## 1                 4024          4024          4024             4024
-    ##   differentiate_count Grade_count A.Stage_count Tumor.Size_count
-    ## 1                4024        4024          4024             4024
-    ##   Estrogen.Status_count Progesterone.Status_count Regional.Node.Examined_count
-    ## 1                  4024                      4024                         4024
-    ##   Reginol.Node.Positive_count Survival.Months_count Status_count
-    ## 1                        4024                  4024         4024
+    ##   Survival.Months_median Age_count Tumor.Size_count
+    ## 1                     73      4024             4024
+    ##   Regional.Node.Examined_count Reginol.Node.Positive_count
+    ## 1                         4024                        4024
+    ##   Survival.Months_count
+    ## 1                  4024
+
+``` r
+#correlation table
+```
+
+# Clean Data
+
+``` r
+lapply(data, table)
+```
+
+    ## $Age
+    ## 
+    ##  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49 
+    ##   5  14  13  15  14  20  24  28  45  52  72  71  82  92  79 102 163 161 140 162 
+    ##  50  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69 
+    ## 144 148 118 155 128 154 132 144 120 147 140 143 149 153 116 122 119 119 111 108 
+    ## 
+    ## $Race
+    ## 
+    ## Black Other White 
+    ##   291   320  3413 
+    ## 
+    ## $Marital.Status
+    ## 
+    ##  Divorced   Married Separated   Single    Widowed 
+    ##       486      2643        45       615       235 
+    ## 
+    ## $T.Stage
+    ## 
+    ##   T1   T2   T3   T4 
+    ## 1603 1786  533  102 
+    ## 
+    ## $N.Stage
+    ## 
+    ##   N1   N2   N3 
+    ## 2732  820  472 
+    ## 
+    ## $X6th.Stage
+    ## 
+    ##  IIA  IIB IIIA IIIB IIIC 
+    ## 1305 1130 1050   67  472 
+    ## 
+    ## $differentiate
+    ## 
+    ## Moderately differentiated     Poorly differentiated          Undifferentiated 
+    ##                      2351                      1111                        19 
+    ##       Well differentiated 
+    ##                       543 
+    ## 
+    ## $Grade
+    ## 
+    ##  anaplastic; Grade IV                     1                     2 
+    ##                    19                   543                  2351 
+    ##                     3 
+    ##                  1111 
+    ## 
+    ## $A.Stage
+    ## 
+    ##  Distant Regional 
+    ##       92     3932 
+    ## 
+    ## $Tumor.Size
+    ## 
+    ##   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20 
+    ##   7  12   9  14  25  23  42  40  49  92  77 118  81  92 271 104 120 158  75 211 
+    ##  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40 
+    ## 108 115  78  69 268  42  61  57  22 228  28  50  25  24 161  17  26  28  10 145 
+    ##  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60 
+    ##   6  28  10   8  77   9  16  12   3  93  21  20   5   6  64   5   7   6   4  92 
+    ##  61  62  63  64  65  66  67  68  69  70  72  73  74  75  76  77  78  79  80  81 
+    ##   7   7  10   1  29   3   1   7   2  61   5   1   5  24   5   2   3   1  46   2 
+    ##  82  83  84  85  86  87  88  90  92  94  95  96  97  98 100 101 103 104 105 107 
+    ##   3   3   2  10   1   1   1  27   2   1   5   1   2   1  25   2   1   1   3   1 
+    ## 108 110 115 117 120 123 125 130 133 140 
+    ##   1   4   1   1  15   1   1   5   1   5 
+    ## 
+    ## $Estrogen.Status
+    ## 
+    ## Negative Positive 
+    ##      269     3755 
+    ## 
+    ## $Progesterone.Status
+    ## 
+    ## Negative Positive 
+    ##      698     3326 
+    ## 
+    ## $Regional.Node.Examined
+    ## 
+    ##   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20 
+    ##  97 137 116 114 110 115 104 148 198 183 191 205 251 225 195 221 175 176 152 126 
+    ##  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40 
+    ## 109  82  98  84  58  64  49  45  34  27  20  22  13   8  10   9   8   4   6   5 
+    ##  41  42  43  44  45  46  47  49  51  52  54  57  60  61 
+    ##   6   2   3   1   1   1   6   2   3   1   1   1   1   1 
+    ## 
+    ## $Reginol.Node.Positive
+    ## 
+    ##    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16 
+    ## 1522  740  420  261  207  140  108   75   90   61   56   50   33   41   26   29 
+    ##   17   18   19   20   21   22   23   24   25   26   27   28   29   30   31   32 
+    ##   26   15   23   10   13   16    8    8    3   10    6    7    6    2    1    2 
+    ##   33   34   35   37   41   46 
+    ##    2    2    1    2    1    1 
+    ## 
+    ## $Survival.Months
+    ## 
+    ##   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20 
+    ##   1   3   4  10   6   8   5   7   9   8   4   6  12  10   6   8   6  11   5  10 
+    ##  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40 
+    ##   7  11  16  12  12   5  13   8   7  10  15   5   9  11  11  11  11  13   9  18 
+    ##  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60 
+    ##  24  14  10  16  16  14  26  54  61  67  55  62  61  59  63  73  53  61  61  63 
+    ##  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79  80 
+    ##  60  52  73  62  55  71  61  63  81  49  41  57  55  56  65  59  64  56  55  68 
+    ##  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95  96  97  98  99 100 
+    ##  68  61  66  58  52  57  53  63  66  43  51  49  62  57  67  54  57  72  55  66 
+    ## 101 102 103 104 105 106 107 
+    ##  54  73  50  48  45  47  61 
+    ## 
+    ## $Status
+    ## 
+    ## Alive  Dead 
+    ##  3408   616
 
 # 2. Data Visualization
 
@@ -79,6 +179,24 @@ for (col in names(numeric_vars)) {
     ## generated.
 
 ``` r
+# Scatter plot for continuous variables
+predictors = c("Age", "Tumor.Size", "Regional.Node.Examined", "Reginol.Node.Positive")
+sorted_data = melt(data, id.vars = "Survival.Months", measure.vars = predictors)
+ggplot(sorted_data, aes(x = value, y = Survival.Months)) +
+  geom_point(alpha = 1) +
+  geom_smooth(method = "lm", color = "blue") +
+  facet_wrap(~variable, scales = "free_x") +  
+  labs(title = "Scatter Plots of Predictors vs Survival Time",
+       x = "Predictor Value",
+       y = "Survival Time (Months)") +
+  theme_minimal()
+```
+
+    ## `geom_smooth()` using formula = 'y ~ x'
+
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+
+``` r
 # Correlation heatmap
 cor_matrix <- cor(numeric_vars, use = "complete.obs")
 ggplot(melt(cor_matrix), aes(Var1, Var2, fill = value)) + 
@@ -88,7 +206,14 @@ ggplot(melt(cor_matrix), aes(Var1, Var2, fill = value)) +
   theme_minimal()
 ```
 
-![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-2.png)<!-- -->
+
+``` r
+# Correlation heatmap with correlation coefficient
+corrplot(cor_matrix, method = "number", type = "full", tl.col = "black", tl.srt = 45, title = "Correlation Heatmap")
+```
+
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-3.png)<!-- -->
 
 # 3. Model Building: Survival Analysis
 

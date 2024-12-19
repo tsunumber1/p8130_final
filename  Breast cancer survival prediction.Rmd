@@ -35,6 +35,11 @@ summary_stats
 #correlation table
 
 ```
+# Clean Data
+
+```{r data_cleaning}
+lapply(data, table)
+```
 
 # 2. Data Visualization
 ```{r}
