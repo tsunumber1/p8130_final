@@ -11,30 +11,104 @@ data <- read.csv("./data/Project_2_data.csv")
 # 1. Descriptive Summary
 
 ``` r
-summary_stats <- data |> 
+# summary_stats for numeric predictors
+summary_numeric <- data |> 
   select_if(is.numeric) |>
-  summarise_all(list(mean = ~mean(as.numeric(.), na.rm = TRUE), 
-                     median = ~median(as.numeric(.), na.rm = TRUE), 
-                     count = ~sum(!is.na(.))))
-summary_stats
+  summarise_all(list(
+    mean = ~mean(.x, na.rm = TRUE), 
+    median = ~median(.x, na.rm = TRUE), 
+    sd = ~sd(.x, na.rm = TRUE),
+    min = ~min(.x, na.rm = TRUE),
+    max = ~max(.x, na.rm = TRUE),
+    iqr = ~IQR(.x, na.rm = TRUE),
+    count = ~sum(!is.na(.x))
+  ))
+
+summary_numeric_long <- summary_numeric |> 
+  pivot_longer(
+    cols = everything(),        
+    names_to = c("Variable", "Statistic"), 
+    names_sep = "_",            
+    values_to = "Value"         
+  )
+summary_numeric_wide <- summary_numeric_long |> 
+  pivot_wider(
+    names_from = Statistic,    
+    values_from = Value         
+  )
+summary_numeric_wide
 ```
 
-    ##   Age_mean Tumor.Size_mean Regional.Node.Examined_mean
-    ## 1 53.97217        30.47366                    14.35711
-    ##   Reginol.Node.Positive_mean Survival.Months_mean Age_median Tumor.Size_median
-    ## 1                   4.158052             71.29796         54                25
-    ##   Regional.Node.Examined_median Reginol.Node.Positive_median
-    ## 1                            14                            2
-    ##   Survival.Months_median Age_count Tumor.Size_count
-    ## 1                     73      4024             4024
-    ##   Regional.Node.Examined_count Reginol.Node.Positive_count
-    ## 1                         4024                        4024
-    ##   Survival.Months_count
-    ## 1                  4024
+    ## # A tibble: 5 × 8
+    ##   Variable                mean median    sd   min   max   iqr count
+    ##   <chr>                  <dbl>  <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+    ## 1 Age                    54.0      54  8.96    30    69    14  4024
+    ## 2 Tumor.Size             30.5      25 21.1      1   140    22  4024
+    ## 3 Regional.Node.Examined 14.4      14  8.10     1    61    10  4024
+    ## 4 Reginol.Node.Positive   4.16      2  5.11     1    46     4  4024
+    ## 5 Survival.Months        71.3      73 22.9      1   107    34  4024
 
 ``` r
-#correlation table
+#summary_stats for categorical predictors
+summary_categorical <- data |> 
+  select_if(is.character) |>   
+  summarise_all(~ {
+    freq_table <- table(.)
+    summary <- paste(
+      paste0(names(freq_table), " (", as.vector(freq_table), " - ", 
+             round(prop.table(freq_table) * 100, 2), "%)"), 
+      collapse = "; "
+    )
+    summary
+  })
+
+summary_categorical_long <- summary_categorical |> 
+  pivot_longer(
+    cols = everything(), 
+    names_to = "Variable",
+    values_to = "Summary"
+  ) |> 
+  unnest(Summary)
+
+summary_categorical_long
 ```
+
+    ## # A tibble: 11 × 2
+    ##    Variable            Summary                                                  
+    ##    <chr>               <chr>                                                    
+    ##  1 Race                "Black (291 - 7.23%); Other (320 - 7.95%); White (3413 -…
+    ##  2 Marital.Status      "Divorced (486 - 12.08%); Married (2643 - 65.68%); Separ…
+    ##  3 T.Stage             "T1 (1603 - 39.84%); T2 (1786 - 44.38%); T3 (533 - 13.25…
+    ##  4 N.Stage             "N1 (2732 - 67.89%); N2 (820 - 20.38%); N3 (472 - 11.73%…
+    ##  5 X6th.Stage          "IIA (1305 - 32.43%); IIB (1130 - 28.08%); IIIA (1050 - …
+    ##  6 differentiate       "Moderately differentiated (2351 - 58.42%); Poorly diffe…
+    ##  7 Grade               " anaplastic; Grade IV (19 - 0.47%); 1 (543 - 13.49%); 2…
+    ##  8 A.Stage             "Distant (92 - 2.29%); Regional (3932 - 97.71%)"         
+    ##  9 Estrogen.Status     "Negative (269 - 6.68%); Positive (3755 - 93.32%)"       
+    ## 10 Progesterone.Status "Negative (698 - 17.35%); Positive (3326 - 82.65%)"      
+    ## 11 Status              "Alive (3408 - 84.69%); Dead (616 - 15.31%)"
+
+``` r
+# Missing data
+missing_percentage <- data |> 
+  summarise(across(everything(), ~ mean(is.na(.)) * 100, .names = "missing_pct_{.col}"))
+missing_percentage
+```
+
+    ##   missing_pct_Age missing_pct_Race missing_pct_Marital.Status
+    ## 1               0                0                          0
+    ##   missing_pct_T.Stage missing_pct_N.Stage missing_pct_X6th.Stage
+    ## 1                   0                   0                      0
+    ##   missing_pct_differentiate missing_pct_Grade missing_pct_A.Stage
+    ## 1                         0                 0                   0
+    ##   missing_pct_Tumor.Size missing_pct_Estrogen.Status
+    ## 1                      0                           0
+    ##   missing_pct_Progesterone.Status missing_pct_Regional.Node.Examined
+    ## 1                               0                                  0
+    ##   missing_pct_Reginol.Node.Positive missing_pct_Survival.Months
+    ## 1                                 0                           0
+    ##   missing_pct_Status
+    ## 1                  0
 
 # Clean Data
 
@@ -196,6 +270,15 @@ corrplot(cor_matrix, method = "number", type = "full", tl.col = "black", tl.srt 
 ```
 
 ![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-3.png)<!-- -->
+
+``` r
+# Bar Plot for categorical variables
+ggplot(data, aes(x = Race, fill = Race)) +
+  geom_bar() +
+  labs(title = "Distribution of Race", x = "Race", y = "Count")
+```
+
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-4.png)<!-- -->
 
 # 3. Model Building: Survival Analysis
 
