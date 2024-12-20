@@ -205,11 +205,11 @@ print(logit_vif_values)
 
 ```{r}
 # Building model
-logistic_full <- glm(Status ~ (.)^2, family = binomial, data = data_cleaned)
+logistic_full <- glm(Status ~ ., family = binomial, data = data_cleaned)
 logistic_null <- glm(Status ~ 1, family = binomial, data = data_cleaned)
 
 # backward selection
-backward_model <- step(logistic, direction = "backward")
+backward_model <- step(logistic_full, direction = "backward")
 AIC(backward_model)
 
 # forward selection
@@ -240,7 +240,7 @@ results
 
 # logistic regression
 ```{r}
-logistics <- glm(Status ~ Age + Race + T.Stage + N.Stage + differentiate + Estrogen.Status + 
+logistics <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + Estrogen.Status + 
     Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + 
     Survival.Months, family = binomial, data = data_cleaned)
 summary(logistics)
