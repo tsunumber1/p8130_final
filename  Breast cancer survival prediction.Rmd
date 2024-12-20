@@ -78,7 +78,7 @@ summary_categorical_long
 # Missing data
 missing_percentage <- data |> 
   summarise(across(everything(), ~ mean(is.na(.)) * 100, .names = "missing_pct_{.col}"))
-
+missing_percentage
 ```
 # Clean Data
 
