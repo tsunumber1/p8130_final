@@ -26,8 +26,6 @@ library(mgcv)
 data <- read.csv("./data/Project_2_data.csv")
 
 # Clean dataset
-lapply(data, table)
-
 data_cleaned <- data %>%
   mutate(
     Race = factor(Race),
@@ -183,7 +181,7 @@ cat("Concordance Index:", c_index, "\n")
 
 # 4. Model Building: Logistic Regression
 
-# Varibales selection
+## Varibales selection
 
 ```{r}
 # Building model
@@ -266,7 +264,7 @@ BIC = c(BIC(RNP_included_backward), BIC(RNP_excluded_backward))
 result4
 ```
 
-# try using lasso for model selection and test the model 
+## try using lasso for model selection and test the model 
 
 ```{r}
 predictors <- model.matrix(Status ~ ., data = data_cleaned)[, -1]
@@ -313,7 +311,7 @@ ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
   scale_color_manual(values = c("black", "purple"), labels = c("Not Influential", "Influential"))
 ```
 
-# Likelihood Ratio Test
+## Likelihood Ratio Test
 
 ```{r}
 #Regional.Node.Examined * Reginol.Node.Positive (significant, lrt suggests they should be included)
@@ -384,7 +382,7 @@ lrt <- anova(base_model, interaction_model, test = "LRT")
 print(lrt)
 ```
 
-# logistic regression
+## logistic regression
 
 ```{r}
 # with Reginol.Node.Positive and Regional.Node.Examined * Reginol.Node.Positive
@@ -421,11 +419,12 @@ data_cleaned$predicted_probs <- predict(logistics_gam_auto, type = "response")
 
 ```
 
-# Model Diagnostics
+## Model Diagnostics
 
 ```{r logit_diagnostics}
 # Test for linearity
 test_logit_model <- glm(Status ~ ., family = binomial, data = data_cleaned)
+
 probabilities <- predict(test_logit_model, type = "response")
 mydata <- data_cleaned %>%
   dplyr::select(Age, Tumor.Size, Regional.Node.Examined, Reginol.Node.Positive)
@@ -445,18 +444,21 @@ ggplot(mydata, aes(logit, predictor.value))+
 logit_vif_values <- vif(test_logit_model)
 print(logit_vif_values)
 data_cleaned <- data_cleaned %>% 
-  select(-X6th.Stage, -Reginol.Node.Positive)
+  select(-X6th.Stage)
+test_logit_model2 <- glm(Status ~ ., family = binomial, data = data_cleaned)
+logit_vif_values2 <- vif(test_logit_model2)
+print(logit_vif_values2)
 ```
 
 ```{r}
 # independence of errors
-residuals <- residuals(logistics, type = "pearson")
+residuals <- residuals(test_logit_model2, type = "pearson")
 plot(residuals, main = "Residual Plot", xlab = "Index", ylab = "Residuals")
 abline(h = 0, col = "red")
 
-#linearity assumption
-plot(logistics, which = 4, id.n = 3)
-model.data <- augment(logistics) %>% 
+#outlier assumption
+plot(test_logit_model2, which = 4, id.n = 3)
+model.data <- broom::augment(test_logit_model2) %>% 
   mutate(index = 1:n()) 
 model.data %>% top_n(3, .cooksd)
 ggplot(model.data, aes(index, .std.resid)) + 
@@ -466,9 +468,9 @@ model.data %>%
   filter(abs(.std.resid) > 3)
 
 # existence of of strongly influential outliers
-std_residuals <- rstandard(logistics)
-leverage <- hatvalues(logistics2)
-cooks_distance <- cooks.distance(logistics)
+std_residuals <- rstandard(test_logit_model2)
+leverage <- hatvalues(test_logit_model2)
+cooks_distance <- cooks.distance(test_logit_model2)
 plot_data <- data.frame(Leverage = leverage, Residuals = std_residuals)
 
 ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
@@ -483,7 +485,9 @@ ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
   theme_minimal() +
   scale_color_manual(values = c("black", "purple"), labels = c("Not Influential", "Influential"))
 ```
-4
+
+Here we diagnose the logistric regression model by testing its assumption. According to the results, we found non-linear relationship between continuous variables and the log odd of binary outcome in our initial model. There is multicolinearity for `T.Stage`, `N.Stage`, `X6th.Stage`. However, we found that these variables might be highly correlated since they are using similar measuring systems. By removing `X6th.Stage`, the multicolinearity no longer exist. And out initial model pass the test for error independence and influencial outliers.
+
 # 4. Fairness Analysis
 
 
