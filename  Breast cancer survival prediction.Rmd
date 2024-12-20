@@ -146,6 +146,16 @@ for (i in 1:(nrow(cor_matrix) - 1)) {
     }
   }
 }
+
+#show pairs with moderate correlation
+for (i in 1:(nrow(cor_matrix) - 1)) {
+  for (j in (i + 1):ncol(cor_matrix)) {
+    if (abs(cor_matrix[i, j]) > 0.4 & abs(cor_matrix[i, j]) <0.7) {
+      cat("Pairs with moderate correlation:", rownames(cor_matrix)[i], "~", colnames(cor_matrix)[j], 
+          "with correlation =", cor_matrix[i, j], "\n")
+    }
+  }
+}
 ```
 
 # 3. Model Building: Survival Analysis
