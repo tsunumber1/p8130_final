@@ -153,9 +153,24 @@ ggplot(melt(cor_matrix), aes(Var1, Var2, fill = value)) +
 corrplot(cor_matrix, method = "number", type = "full", tl.col = "black", tl.srt = 45, title = "Correlation Heatmap")
 
 # Bar Plot for categorical variables
-ggplot(data, aes(x = Race, fill = Race)) +
-  geom_bar() +
-  labs(title = "Distribution of Race", x = "Race", y = "Count")
+categorical_vars <- names(data)[sapply(data, is.factor) | sapply(data, is.character)]
+if (length(categorical_vars) > 0) {
+  for (var in categorical_vars) {
+    p <- ggplot(data, aes_string(x = var, fill = var)) +
+      geom_bar() +
+      labs(
+        title = paste("Distribution of", var),
+        x = var,
+        y = "Count"
+      ) +
+      theme_minimal() +
+      scale_fill_brewer(palette = "Set2")  
+    
+    print(p)  
+  }
+} else {
+  message("No categorical variables found in the dataset.")
+}
 ```
 
 # 3. Model Building: Survival Analysis
@@ -176,6 +191,20 @@ write.csv(tidy_cox, "cox_model_summary.csv")
 c_index <- summary(cox_model)$concordance
 cat("Concordance Index:", c_index, "\n")
 ```
+
+# Varibales selection
+```{r}
+# backward selection
+logistic <- glm(Status ~ ., family = binomial, data = data)
+backward_model <- step(logistic, direction = "backward")
+AIC(backward_model)
+
+# forward selection
+null_logistic <- glm(Status ~ 1, family = binomial, data = data)
+forward_model <- step(null_logistic, direction = "forward")
+AIC(forward_model)
+```
+
 
 # 4. Fairness Analysis
 
