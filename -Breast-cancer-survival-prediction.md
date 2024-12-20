@@ -273,12 +273,27 @@ corrplot(cor_matrix, method = "number", type = "full", tl.col = "black", tl.srt 
 
 ``` r
 # Bar Plot for categorical variables
-ggplot(data, aes(x = Race, fill = Race)) +
-  geom_bar() +
-  labs(title = "Distribution of Race", x = "Race", y = "Count")
+categorical_vars <- names(data)[sapply(data, is.factor) | sapply(data, is.character)]
+if (length(categorical_vars) > 0) {
+  for (var in categorical_vars) {
+    p <- ggplot(data, aes_string(x = var, fill = var)) +
+      geom_bar() +
+      labs(
+        title = paste("Distribution of", var),
+        x = var,
+        y = "Count"
+      ) +
+      theme_minimal() +
+      scale_fill_brewer(palette = "Set2")  
+    
+    print(p)  
+  }
+} else {
+  message("No categorical variables found in the dataset.")
+}
 ```
 
-![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-4.png)<!-- -->
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-4.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-5.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-6.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-7.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-8.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-9.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-10.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-11.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-12.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-13.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-3-14.png)<!-- -->
 
 # 3. Model Building: Survival Analysis
 
@@ -404,5 +419,142 @@ cat("Concordance Index:", c_index, "\n")
 ```
 
     ## Concordance Index: 0.7437448 0.01069854
+
+# Varibales selection
+
+``` r
+# backward selection
+logistic <- glm(Status ~ ., family = binomial, data = data)
+backward_model <- step(logistic, direction = "backward")
+```
+
+    ## Start:  AIC=2284.41
+    ## Status ~ Age + Race + Marital.Status + T.Stage + N.Stage + X6th.Stage + 
+    ##     differentiate + Grade + A.Stage + Tumor.Size + Estrogen.Status + 
+    ##     Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + 
+    ##     Survival.Months
+    ## 
+    ## 
+    ## Step:  AIC=2284.41
+    ## Status ~ Age + Race + Marital.Status + T.Stage + N.Stage + X6th.Stage + 
+    ##     differentiate + A.Stage + Tumor.Size + Estrogen.Status + 
+    ##     Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + 
+    ##     Survival.Months
+    ## 
+    ##                          Df Deviance    AIC
+    ## - Marital.Status          4   2235.7 2279.7
+    ## - X6th.Stage              3   2235.1 2281.1
+    ## - A.Stage                 1   2232.7 2282.7
+    ## - Tumor.Size              1   2232.9 2282.9
+    ## <none>                        2232.4 2284.4
+    ## - Estrogen.Status         1   2235.1 2285.1
+    ## - T.Stage                 3   2239.6 2285.6
+    ## - N.Stage                 1   2238.9 2288.9
+    ## - Race                    2   2242.1 2290.1
+    ## - Progesterone.Status     1   2243.7 2293.7
+    ## - Regional.Node.Examined  1   2248.2 2298.2
+    ## - Reginol.Node.Positive   1   2251.2 2301.2
+    ## - Age                     1   2251.6 2301.6
+    ## - differentiate           3   2262.8 2308.8
+    ## - Survival.Months         1   2952.0 3002.0
+    ## 
+    ## Step:  AIC=2279.72
+    ## Status ~ Age + Race + T.Stage + N.Stage + X6th.Stage + differentiate + 
+    ##     A.Stage + Tumor.Size + Estrogen.Status + Progesterone.Status + 
+    ##     Regional.Node.Examined + Reginol.Node.Positive + Survival.Months
+    ## 
+    ##                          Df Deviance    AIC
+    ## - X6th.Stage              3   2238.3 2276.3
+    ## - A.Stage                 1   2236.0 2278.0
+    ## - Tumor.Size              1   2236.1 2278.1
+    ## <none>                        2235.7 2279.7
+    ## - Estrogen.Status         1   2238.4 2280.4
+    ## - T.Stage                 3   2242.9 2280.9
+    ## - N.Stage                 1   2242.1 2284.1
+    ## - Race                    2   2246.6 2286.6
+    ## - Progesterone.Status     1   2247.6 2289.6
+    ## - Regional.Node.Examined  1   2251.5 2293.5
+    ## - Reginol.Node.Positive   1   2254.9 2296.9
+    ## - Age                     1   2257.3 2299.3
+    ## - differentiate           3   2265.8 2303.8
+    ## - Survival.Months         1   2960.1 3002.1
+    ## 
+    ## Step:  AIC=2276.32
+    ## Status ~ Age + Race + T.Stage + N.Stage + differentiate + A.Stage + 
+    ##     Tumor.Size + Estrogen.Status + Progesterone.Status + Regional.Node.Examined + 
+    ##     Reginol.Node.Positive + Survival.Months
+    ## 
+    ##                          Df Deviance    AIC
+    ## - A.Stage                 1   2238.6 2274.6
+    ## - Tumor.Size              1   2238.6 2274.6
+    ## <none>                        2238.3 2276.3
+    ## - Estrogen.Status         1   2241.1 2277.1
+    ## - N.Stage                 2   2245.6 2279.6
+    ## - Race                    2   2249.8 2283.8
+    ## - Progesterone.Status     1   2250.0 2286.0
+    ## - T.Stage                 3   2254.2 2286.2
+    ## - Regional.Node.Examined  1   2254.1 2290.1
+    ## - Reginol.Node.Positive   1   2257.8 2293.8
+    ## - Age                     1   2259.0 2295.0
+    ## - differentiate           3   2268.2 2300.2
+    ## - Survival.Months         1   2961.7 2997.7
+    ## 
+    ## Step:  AIC=2274.59
+    ## Status ~ Age + Race + T.Stage + N.Stage + differentiate + Tumor.Size + 
+    ##     Estrogen.Status + Progesterone.Status + Regional.Node.Examined + 
+    ##     Reginol.Node.Positive + Survival.Months
+    ## 
+    ##                          Df Deviance    AIC
+    ## - Tumor.Size              1   2238.9 2272.9
+    ## <none>                        2238.6 2274.6
+    ## - Estrogen.Status         1   2241.4 2275.4
+    ## - N.Stage                 2   2245.7 2277.7
+    ## - Race                    2   2250.2 2282.2
+    ## - Progesterone.Status     1   2250.3 2284.3
+    ## - T.Stage                 3   2254.3 2284.3
+    ## - Regional.Node.Examined  1   2254.2 2288.2
+    ## - Reginol.Node.Positive   1   2258.3 2292.3
+    ## - Age                     1   2259.6 2293.6
+    ## - differentiate           3   2268.8 2298.8
+    ## - Survival.Months         1   2961.8 2995.8
+    ## 
+    ## Step:  AIC=2272.88
+    ## Status ~ Age + Race + T.Stage + N.Stage + differentiate + Estrogen.Status + 
+    ##     Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + 
+    ##     Survival.Months
+    ## 
+    ##                          Df Deviance    AIC
+    ## <none>                        2238.9 2272.9
+    ## - Estrogen.Status         1   2241.6 2273.6
+    ## - N.Stage                 2   2245.8 2275.8
+    ## - Race                    2   2250.4 2280.4
+    ## - Progesterone.Status     1   2250.7 2282.7
+    ## - Regional.Node.Examined  1   2254.4 2286.4
+    ## - T.Stage                 3   2261.7 2289.7
+    ## - Reginol.Node.Positive   1   2258.5 2290.5
+    ## - Age                     1   2260.1 2292.1
+    ## - differentiate           3   2269.2 2297.2
+    ## - Survival.Months         1   2961.8 2993.8
+
+``` r
+AIC(backward_model)
+```
+
+    ## [1] 2272.878
+
+``` r
+# forward selection
+null_logistic <- glm(Status ~ 1, family = binomial, data = data)
+forward_model <- step(null_logistic, direction = "forward")
+```
+
+    ## Start:  AIC=3446.68
+    ## Status ~ 1
+
+``` r
+AIC(forward_model)
+```
+
+    ## [1] 3446.683
 
 # 4. Fairness Analysis
