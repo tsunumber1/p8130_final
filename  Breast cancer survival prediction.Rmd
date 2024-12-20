@@ -41,11 +41,11 @@ data_cleaned <- data %>%
     Status = factor(Status)
   ) %>% 
   mutate(
-    T.Stage = factor(T.Stage, levels = c("T1", "T2", "T3", "T4"), ordered = FALSE),
-    N.Stage = factor(N.Stage, levels = c("N1", "N2", "N3"), ordered = FALSE),
-    X6th.Stage = factor(X6th.Stage, levels = c("IIA", "IIB", "IIIA", "IIIB", "IIIC"), ordered = FALSE),
-    Grade = factor(Grade, levels = c("1", "2", "3", "anaplastic; Grade IV"), ordered = FALSE),
-    A.Stage = factor(A.Stage, levels = c("Regional", "Distant"), ordered = FALSE)
+    T.Stage = as.numeric(factor(T.Stage, levels = c("T1", "T2", "T3", "T4"), ordered = TRUE)),
+    N.Stage = as.numeric(factor(N.Stage, levels = c("N1", "N2", "N3"), ordered = TRUE)),
+    X6th.Stage = as.numeric(factor(X6th.Stage, levels = c("IIA", "IIB", "IIIA", "IIIB", "IIIC"), ordered = TRUE)),
+    Grade = as.numeric(factor(Grade, levels = c("1", "2", "3", "anaplastic; Grade IV"), ordered = TRUE)),
+    A.Stage = as.numeric(factor(A.Stage, levels = c("Regional", "Distant"), ordered = TRUE))
   ) %>% 
   select(-differentiate)
 ```
