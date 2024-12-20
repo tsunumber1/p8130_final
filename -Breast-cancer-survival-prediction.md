@@ -8,124 +8,6 @@ Tong Su, Minghe Wang, Kai Tan, Yifei Chen
 data <- read.csv("./data/Project_2_data.csv")
 
 # Clean dataset
-lapply(data, table)
-```
-
-    ## $Age
-    ## 
-    ##  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49 
-    ##   5  14  13  15  14  20  24  28  45  52  72  71  82  92  79 102 163 161 140 162 
-    ##  50  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69 
-    ## 144 148 118 155 128 154 132 144 120 147 140 143 149 153 116 122 119 119 111 108 
-    ## 
-    ## $Race
-    ## 
-    ## Black Other White 
-    ##   291   320  3413 
-    ## 
-    ## $Marital.Status
-    ## 
-    ##  Divorced   Married Separated   Single    Widowed 
-    ##       486      2643        45       615       235 
-    ## 
-    ## $T.Stage
-    ## 
-    ##   T1   T2   T3   T4 
-    ## 1603 1786  533  102 
-    ## 
-    ## $N.Stage
-    ## 
-    ##   N1   N2   N3 
-    ## 2732  820  472 
-    ## 
-    ## $X6th.Stage
-    ## 
-    ##  IIA  IIB IIIA IIIB IIIC 
-    ## 1305 1130 1050   67  472 
-    ## 
-    ## $differentiate
-    ## 
-    ## Moderately differentiated     Poorly differentiated          Undifferentiated 
-    ##                      2351                      1111                        19 
-    ##       Well differentiated 
-    ##                       543 
-    ## 
-    ## $Grade
-    ## 
-    ##  anaplastic; Grade IV                     1                     2 
-    ##                    19                   543                  2351 
-    ##                     3 
-    ##                  1111 
-    ## 
-    ## $A.Stage
-    ## 
-    ##  Distant Regional 
-    ##       92     3932 
-    ## 
-    ## $Tumor.Size
-    ## 
-    ##   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20 
-    ##   7  12   9  14  25  23  42  40  49  92  77 118  81  92 271 104 120 158  75 211 
-    ##  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40 
-    ## 108 115  78  69 268  42  61  57  22 228  28  50  25  24 161  17  26  28  10 145 
-    ##  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60 
-    ##   6  28  10   8  77   9  16  12   3  93  21  20   5   6  64   5   7   6   4  92 
-    ##  61  62  63  64  65  66  67  68  69  70  72  73  74  75  76  77  78  79  80  81 
-    ##   7   7  10   1  29   3   1   7   2  61   5   1   5  24   5   2   3   1  46   2 
-    ##  82  83  84  85  86  87  88  90  92  94  95  96  97  98 100 101 103 104 105 107 
-    ##   3   3   2  10   1   1   1  27   2   1   5   1   2   1  25   2   1   1   3   1 
-    ## 108 110 115 117 120 123 125 130 133 140 
-    ##   1   4   1   1  15   1   1   5   1   5 
-    ## 
-    ## $Estrogen.Status
-    ## 
-    ## Negative Positive 
-    ##      269     3755 
-    ## 
-    ## $Progesterone.Status
-    ## 
-    ## Negative Positive 
-    ##      698     3326 
-    ## 
-    ## $Regional.Node.Examined
-    ## 
-    ##   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20 
-    ##  97 137 116 114 110 115 104 148 198 183 191 205 251 225 195 221 175 176 152 126 
-    ##  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40 
-    ## 109  82  98  84  58  64  49  45  34  27  20  22  13   8  10   9   8   4   6   5 
-    ##  41  42  43  44  45  46  47  49  51  52  54  57  60  61 
-    ##   6   2   3   1   1   1   6   2   3   1   1   1   1   1 
-    ## 
-    ## $Reginol.Node.Positive
-    ## 
-    ##    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16 
-    ## 1522  740  420  261  207  140  108   75   90   61   56   50   33   41   26   29 
-    ##   17   18   19   20   21   22   23   24   25   26   27   28   29   30   31   32 
-    ##   26   15   23   10   13   16    8    8    3   10    6    7    6    2    1    2 
-    ##   33   34   35   37   41   46 
-    ##    2    2    1    2    1    1 
-    ## 
-    ## $Survival.Months
-    ## 
-    ##   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20 
-    ##   1   3   4  10   6   8   5   7   9   8   4   6  12  10   6   8   6  11   5  10 
-    ##  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40 
-    ##   7  11  16  12  12   5  13   8   7  10  15   5   9  11  11  11  11  13   9  18 
-    ##  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60 
-    ##  24  14  10  16  16  14  26  54  61  67  55  62  61  59  63  73  53  61  61  63 
-    ##  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79  80 
-    ##  60  52  73  62  55  71  61  63  81  49  41  57  55  56  65  59  64  56  55  68 
-    ##  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95  96  97  98  99 100 
-    ##  68  61  66  58  52  57  53  63  66  43  51  49  62  57  67  54  57  72  55  66 
-    ## 101 102 103 104 105 106 107 
-    ##  54  73  50  48  45  47  61 
-    ## 
-    ## $Status
-    ## 
-    ## Alive  Dead 
-    ##  3408   616
-
-``` r
 data_cleaned <- data %>%
   mutate(
     Race = factor(Race),
@@ -138,7 +20,7 @@ data_cleaned <- data %>%
     A.Stage = factor(A.Stage),
     Estrogen.Status = factor(Estrogen.Status),
     Progesterone.Status = factor(Progesterone.Status),
-    Status = factor(Status)
+    Status = ifelse(Status == "Dead", 1, 0)
   ) %>% 
   mutate(
     T.Stage = as.numeric(factor(T.Stage, levels = c("T1", "T2", "T3", "T4"), ordered = TRUE)),
@@ -184,19 +66,20 @@ summary_numeric_wide <- summary_numeric_long |>
 summary_numeric_wide
 ```
 
-    ## # A tibble: 10 × 8
-    ##    Variable                mean median     sd   min   max   iqr count
-    ##    <chr>                  <dbl>  <dbl>  <dbl> <dbl> <dbl> <dbl> <dbl>
-    ##  1 Age                    54.0      54  8.96     30    69    14  4024
-    ##  2 T.Stage                 1.78      2  0.766     1     4     1  4024
-    ##  3 N.Stage                 1.44      1  0.693     1     3     1  4024
-    ##  4 X6th.Stage              2.32      2  1.27      1     5     2  4024
-    ##  5 Grade                   2.15      2  0.638     1     4     1  4024
-    ##  6 A.Stage                 1.02      1  0.149     1     2     0  4024
-    ##  7 Tumor.Size             30.5      25 21.1       1   140    22  4024
-    ##  8 Regional.Node.Examined 14.4      14  8.10      1    61    10  4024
-    ##  9 Reginol.Node.Positive   4.16      2  5.11      1    46     4  4024
-    ## 10 Survival.Months        71.3      73 22.9       1   107    34  4024
+    ## # A tibble: 11 × 8
+    ##    Variable                 mean median     sd   min   max   iqr count
+    ##    <chr>                   <dbl>  <dbl>  <dbl> <dbl> <dbl> <dbl> <dbl>
+    ##  1 Age                    54.0       54  8.96     30    69    14  4024
+    ##  2 T.Stage                 1.78       2  0.766     1     4     1  4024
+    ##  3 N.Stage                 1.44       1  0.693     1     3     1  4024
+    ##  4 X6th.Stage              2.32       2  1.27      1     5     2  4024
+    ##  5 Grade                   2.15       2  0.638     1     4     1  4024
+    ##  6 A.Stage                 1.02       1  0.149     1     2     0  4024
+    ##  7 Tumor.Size             30.5       25 21.1       1   140    22  4024
+    ##  8 Regional.Node.Examined 14.4       14  8.10      1    61    10  4024
+    ##  9 Reginol.Node.Positive   4.16       2  5.11      1    46     4  4024
+    ## 10 Survival.Months        71.3       73 22.9       1   107    34  4024
+    ## 11 Status                  0.153      0  0.360     0     1     0  4024
 
 ``` r
 # Missing data
@@ -288,7 +171,7 @@ if (length(categorical_vars) > 0) {
 }
 ```
 
-![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-2-3.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-2-4.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-2-5.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-2-6.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-2-7.png)<!-- -->
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-2-3.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-2-4.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-2-5.png)<!-- -->![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-2-6.png)<!-- -->
 
 ``` r
 #show pairs with strong correlation
@@ -325,122 +208,89 @@ for (i in 1:(nrow(cor_matrix) - 1)) {
     ## Pairs with weak correlation: N.Stage ~ A.Stage with correlation = 0.2605729 
     ## Pairs with weak correlation: N.Stage ~ Tumor.Size with correlation = 0.2779047 
     ## Pairs with weak correlation: N.Stage ~ Regional.Node.Examined with correlation = 0.3282761 
+    ## Pairs with weak correlation: N.Stage ~ Status with correlation = 0.2557719 
     ## Pairs with weak correlation: X6th.Stage ~ A.Stage with correlation = 0.2919618 
     ## Pairs with weak correlation: X6th.Stage ~ Regional.Node.Examined with correlation = 0.3172187 
+    ## Pairs with weak correlation: X6th.Stage ~ Status with correlation = 0.2576359 
     ## Pairs with weak correlation: A.Stage ~ Reginol.Node.Positive with correlation = 0.2328489 
-    ## Pairs with weak correlation: Tumor.Size ~ Reginol.Node.Positive with correlation = 0.2423217
+    ## Pairs with weak correlation: Tumor.Size ~ Reginol.Node.Positive with correlation = 0.2423217 
+    ## Pairs with weak correlation: Reginol.Node.Positive ~ Status with correlation = 0.2566381
 
 # 3. Model Building: Survival Analysis
 
 ``` r
-# Convert Status to binary (Dead = 1, Alive = 0)
-data$Status <- ifelse(data$Status == "Dead", 1, 0)
-
 # Build Cox Proportional Hazards model
-cox_model <- coxph(Surv(Survival.Months, Status) ~ ., data = data)
+cox_model <- coxph(Surv(Survival.Months, Status) ~ ., data = data_cleaned)
 summary(cox_model)
 ```
 
     ## Call:
-    ## coxph(formula = Surv(Survival.Months, Status) ~ ., data = data)
+    ## coxph(formula = Surv(Survival.Months, Status) ~ ., data = data_cleaned)
     ## 
     ##   n= 4024, number of events= 616 
     ## 
-    ##                                         coef exp(coef)  se(coef)      z
-    ## Age                                 0.020463  1.020673  0.004873  4.200
-    ## RaceOther                          -0.736866  0.478612  0.214042 -3.443
-    ## RaceWhite                          -0.370655  0.690282  0.129776 -2.856
-    ## Marital.StatusMarried              -0.203376  0.815971  0.119228 -1.706
-    ## Marital.StatusSeparated             0.391784  1.479619  0.290182  1.350
-    ## Marital.StatusSingle               -0.030024  0.970422  0.146084 -0.206
-    ## Marital.StatusWidowed              -0.030182  0.970269  0.181574 -0.166
-    ## T.StageT2                           0.201182  1.222847  0.160641  1.252
-    ## T.StageT3                           0.354265  1.425133  0.253364  1.398
-    ## T.StageT4                           0.637921  1.892542  0.313356  2.036
-    ## N.StageN2                           0.568511  1.765636  0.203140  2.799
-    ## N.StageN3                           0.756433  2.130663  0.240152  3.150
-    ## X6th.StageIIB                       0.269771  1.309664  0.201799  1.337
-    ## X6th.StageIIIA                      0.027973  1.028368  0.254824  0.110
-    ## X6th.StageIIIB                      0.202537  1.224505  0.395992  0.511
-    ## X6th.StageIIIC                            NA        NA  0.000000     NA
-    ## differentiatePoorly differentiated  0.351803  1.421629  0.089308  3.939
-    ## differentiateUndifferentiated       1.104912  3.018960  0.349828  3.158
-    ## differentiateWell differentiated   -0.449352  0.638042  0.171180 -2.625
-    ## Grade1                                    NA        NA  0.000000     NA
-    ## Grade2                                    NA        NA  0.000000     NA
-    ## Grade3                                    NA        NA  0.000000     NA
-    ## A.StageRegional                    -0.150448  0.860322  0.194018 -0.775
-    ## Tumor.Size                          0.001680  1.001681  0.003161  0.531
-    ## Estrogen.StatusPositive            -0.648532  0.522813  0.135622 -4.782
-    ## Progesterone.StatusPositive        -0.486487  0.614782  0.106949 -4.549
-    ## Regional.Node.Examined             -0.033013  0.967526  0.006492 -5.085
-    ## Reginol.Node.Positive               0.058490  1.060234  0.011353  5.152
-    ##                                    Pr(>|z|)    
-    ## Age                                2.67e-05 ***
-    ## RaceOther                          0.000576 ***
-    ## RaceWhite                          0.004289 ** 
-    ## Marital.StatusMarried              0.088051 .  
-    ## Marital.StatusSeparated            0.176973    
-    ## Marital.StatusSingle               0.837162    
-    ## Marital.StatusWidowed              0.867980    
-    ## T.StageT2                          0.210435    
-    ## T.StageT3                          0.162038    
-    ## T.StageT4                          0.041773 *  
-    ## N.StageN2                          0.005132 ** 
-    ## N.StageN3                          0.001634 ** 
-    ## X6th.StageIIB                      0.181279    
-    ## X6th.StageIIIA                     0.912589    
-    ## X6th.StageIIIB                     0.609025    
-    ## X6th.StageIIIC                           NA    
-    ## differentiatePoorly differentiated 8.18e-05 ***
-    ## differentiateUndifferentiated      0.001586 ** 
-    ## differentiateWell differentiated   0.008664 ** 
-    ## Grade1                                   NA    
-    ## Grade2                                   NA    
-    ## Grade3                                   NA    
-    ## A.StageRegional                    0.438084    
-    ## Tumor.Size                         0.595099    
-    ## Estrogen.StatusPositive            1.74e-06 ***
-    ## Progesterone.StatusPositive        5.40e-06 ***
-    ## Regional.Node.Examined             3.67e-07 ***
-    ## Reginol.Node.Positive              2.58e-07 ***
+    ##                                   coef  exp(coef)   se(coef)      z Pr(>|z|)
+    ## Age                          0.0203770  1.0205860  0.0048613  4.192 2.77e-05
+    ## RaceOther                   -0.7368944  0.4785979  0.2134615 -3.452 0.000556
+    ## RaceWhite                   -0.3744974  0.6876348  0.1293944 -2.894 0.003801
+    ## Marital.StatusMarried       -0.1991172  0.8194539  0.1190045 -1.673 0.094290
+    ## Marital.StatusSeparated      0.4384181  1.5502529  0.2878537  1.523 0.127744
+    ## Marital.StatusSingle        -0.0111130  0.9889485  0.1456421 -0.076 0.939177
+    ## Marital.StatusWidowed       -0.0380960  0.9626205  0.1810814 -0.210 0.833371
+    ## T.Stage                      0.2826774  1.3266771  0.0927377  3.048 0.002303
+    ## N.Stage                      0.3475721  1.4156264  0.1554043  2.237 0.025315
+    ## X6th.Stage                  -0.0038128  0.9961945  0.1001211 -0.038 0.969622
+    ## Grade                        0.3943812  1.4834659  0.0684734  5.760 8.43e-09
+    ## A.Stage                      0.1219854  1.1297376  0.1861550  0.655 0.512282
+    ## Tumor.Size                  -0.0002408  0.9997592  0.0026804 -0.090 0.928422
+    ## Estrogen.StatusPositive     -0.6544763  0.5197142  0.1348804 -4.852 1.22e-06
+    ## Progesterone.StatusPositive -0.4701143  0.6249308  0.1064462 -4.416 1.00e-05
+    ## Regional.Node.Examined      -0.0323493  0.9681683  0.0064298 -5.031 4.88e-07
+    ## Reginol.Node.Positive        0.0535131  1.0549708  0.0109855  4.871 1.11e-06
+    ##                                
+    ## Age                         ***
+    ## RaceOther                   ***
+    ## RaceWhite                   ** 
+    ## Marital.StatusMarried       .  
+    ## Marital.StatusSeparated        
+    ## Marital.StatusSingle           
+    ## Marital.StatusWidowed          
+    ## T.Stage                     ** 
+    ## N.Stage                     *  
+    ## X6th.Stage                     
+    ## Grade                       ***
+    ## A.Stage                        
+    ## Tumor.Size                     
+    ## Estrogen.StatusPositive     ***
+    ## Progesterone.StatusPositive ***
+    ## Regional.Node.Examined      ***
+    ## Reginol.Node.Positive       ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ##                                    exp(coef) exp(-coef) lower .95 upper .95
-    ## Age                                   1.0207     0.9797    1.0110    1.0305
-    ## RaceOther                             0.4786     2.0894    0.3146    0.7281
-    ## RaceWhite                             0.6903     1.4487    0.5353    0.8902
-    ## Marital.StatusMarried                 0.8160     1.2255    0.6459    1.0308
-    ## Marital.StatusSeparated               1.4796     0.6758    0.8378    2.6131
-    ## Marital.StatusSingle                  0.9704     1.0305    0.7288    1.2921
-    ## Marital.StatusWidowed                 0.9703     1.0306    0.6797    1.3850
-    ## T.StageT2                             1.2228     0.8178    0.8926    1.6754
-    ## T.StageT3                             1.4251     0.7017    0.8673    2.3416
-    ## T.StageT4                             1.8925     0.5284    1.0240    3.4976
-    ## N.StageN2                             1.7656     0.5664    1.1857    2.6291
-    ## N.StageN3                             2.1307     0.4693    1.3308    3.4114
-    ## X6th.StageIIB                         1.3097     0.7636    0.8818    1.9451
-    ## X6th.StageIIIA                        1.0284     0.9724    0.6241    1.6946
-    ## X6th.StageIIIB                        1.2245     0.8167    0.5635    2.6609
-    ## X6th.StageIIIC                            NA         NA        NA        NA
-    ## differentiatePoorly differentiated    1.4216     0.7034    1.1933    1.6936
-    ## differentiateUndifferentiated         3.0190     0.3312    1.5208    5.9928
-    ## differentiateWell differentiated      0.6380     1.5673    0.4562    0.8924
-    ## Grade1                                    NA         NA        NA        NA
-    ## Grade2                                    NA         NA        NA        NA
-    ## Grade3                                    NA         NA        NA        NA
-    ## A.StageRegional                       0.8603     1.1624    0.5882    1.2584
-    ## Tumor.Size                            1.0017     0.9983    0.9955    1.0079
-    ## Estrogen.StatusPositive               0.5228     1.9127    0.4008    0.6820
-    ## Progesterone.StatusPositive           0.6148     1.6266    0.4985    0.7582
-    ## Regional.Node.Examined                0.9675     1.0336    0.9553    0.9799
-    ## Reginol.Node.Positive                 1.0602     0.9432    1.0369    1.0841
+    ##                             exp(coef) exp(-coef) lower .95 upper .95
+    ## Age                            1.0206     0.9798    1.0109    1.0304
+    ## RaceOther                      0.4786     2.0894    0.3150    0.7272
+    ## RaceWhite                      0.6876     1.4543    0.5336    0.8861
+    ## Marital.StatusMarried          0.8195     1.2203    0.6490    1.0347
+    ## Marital.StatusSeparated        1.5503     0.6451    0.8818    2.7254
+    ## Marital.StatusSingle           0.9889     1.0112    0.7434    1.3157
+    ## Marital.StatusWidowed          0.9626     1.0388    0.6750    1.3728
+    ## T.Stage                        1.3267     0.7538    1.1062    1.5911
+    ## N.Stage                        1.4156     0.7064    1.0439    1.9197
+    ## X6th.Stage                     0.9962     1.0038    0.8187    1.2122
+    ## Grade                          1.4835     0.6741    1.2972    1.6965
+    ## A.Stage                        1.1297     0.8852    0.7844    1.6272
+    ## Tumor.Size                     0.9998     1.0002    0.9945    1.0050
+    ## Estrogen.StatusPositive        0.5197     1.9241    0.3990    0.6770
+    ## Progesterone.StatusPositive    0.6249     1.6002    0.5073    0.7699
+    ## Regional.Node.Examined         0.9682     1.0329    0.9560    0.9804
+    ## Reginol.Node.Positive          1.0550     0.9479    1.0325    1.0779
     ## 
-    ## Concordance= 0.744  (se = 0.011 )
-    ## Likelihood ratio test= 501.6  on 24 df,   p=<2e-16
-    ## Wald test            = 570.2  on 24 df,   p=<2e-16
-    ## Score (logrank) test = 665  on 24 df,   p=<2e-16
+    ## Concordance= 0.743  (se = 0.011 )
+    ## Likelihood ratio test= 493.1  on 17 df,   p=<2e-16
+    ## Wald test            = 575.7  on 17 df,   p=<2e-16
+    ## Score (logrank) test = 648.5  on 17 df,   p=<2e-16
 
 ``` r
 # Save model summary
@@ -453,7 +303,112 @@ c_index <- summary(cox_model)$concordance
 cat("Concordance Index:", c_index, "\n")
 ```
 
-    ## Concordance Index: 0.7437448 0.01069854
+    ## Concordance Index: 0.7434161 0.01067736
+
+## Model Diagnositics
+
+``` r
+cox_zph <- cox.zph(cox_model)
+print(cox_zph)
+```
+
+    ##                           chisq df       p
+    ## Age                     0.10103  1   0.751
+    ## Race                    0.99407  2   0.608
+    ## Marital.Status          2.52774  4   0.640
+    ## T.Stage                 0.00271  1   0.959
+    ## N.Stage                 0.79775  1   0.372
+    ## X6th.Stage              0.35537  1   0.551
+    ## Grade                   1.88411  1   0.170
+    ## A.Stage                 5.52961  1   0.019
+    ## Tumor.Size              0.97769  1   0.323
+    ## Estrogen.Status        29.60558  1 5.3e-08
+    ## Progesterone.Status    32.46468  1 1.2e-08
+    ## Regional.Node.Examined  0.01050  1   0.918
+    ## Reginol.Node.Positive   0.02145  1   0.884
+    ## GLOBAL                 55.54616 17 5.6e-06
+
+``` r
+# # Alternatively, using ggplot2 for enhanced visualization
+# ggcoxzph(cox_zph)
+
+
+# Fit Cox model with stratification on violating covariates
+cox_model_strat <- coxph(Surv(Survival.Months, Status) ~ Age + Race + Marital.Status + T.Stage + 
+                          N.Stage + X6th.Stage + Grade + Tumor.Size + 
+                          Regional.Node.Examined + Reginol.Node.Positive + 
+                          strata(A.Stage) + strata(Estrogen.Status) + 
+                          strata(Progesterone.Status), 
+                        data = data_cleaned)
+
+summary(cox_model_strat)
+```
+
+    ## Call:
+    ## coxph(formula = Surv(Survival.Months, Status) ~ Age + Race + 
+    ##     Marital.Status + T.Stage + N.Stage + X6th.Stage + Grade + 
+    ##     Tumor.Size + Regional.Node.Examined + Reginol.Node.Positive + 
+    ##     strata(A.Stage) + strata(Estrogen.Status) + strata(Progesterone.Status), 
+    ##     data = data_cleaned)
+    ## 
+    ##   n= 4024, number of events= 616 
+    ## 
+    ##                               coef  exp(coef)   se(coef)      z Pr(>|z|)    
+    ## Age                      0.0202369  1.0204430  0.0048649  4.160 3.19e-05 ***
+    ## RaceOther               -0.7467612  0.4738990  0.2133503 -3.500 0.000465 ***
+    ## RaceWhite               -0.3745104  0.6876258  0.1291795 -2.899 0.003742 ** 
+    ## Marital.StatusMarried   -0.1927006  0.8247289  0.1191009 -1.618 0.105671    
+    ## Marital.StatusSeparated  0.3660085  1.4419674  0.2906047  1.259 0.207860    
+    ## Marital.StatusSingle    -0.0164929  0.9836424  0.1458465 -0.113 0.909964    
+    ## Marital.StatusWidowed   -0.0400914  0.9607017  0.1817133 -0.221 0.825381    
+    ## T.Stage                  0.2857357  1.3307407  0.0923058  3.096 0.001965 ** 
+    ## N.Stage                  0.3453182  1.4124393  0.1571581  2.197 0.028001 *  
+    ## X6th.Stage               0.0076886  1.0077182  0.1009082  0.076 0.939265    
+    ## Grade                    0.3942280  1.4832388  0.0687292  5.736 9.70e-09 ***
+    ## Tumor.Size              -0.0008377  0.9991627  0.0026999 -0.310 0.756370    
+    ## Regional.Node.Examined  -0.0315417  0.9689505  0.0064293 -4.906 9.30e-07 ***
+    ## Reginol.Node.Positive    0.0507808  1.0520923  0.0110575  4.592 4.38e-06 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ##                         exp(coef) exp(-coef) lower .95 upper .95
+    ## Age                        1.0204     0.9800    1.0108    1.0302
+    ## RaceOther                  0.4739     2.1102    0.3119    0.7199
+    ## RaceWhite                  0.6876     1.4543    0.5338    0.8857
+    ## Marital.StatusMarried      0.8247     1.2125    0.6530    1.0416
+    ## Marital.StatusSeparated    1.4420     0.6935    0.8158    2.5487
+    ## Marital.StatusSingle       0.9836     1.0166    0.7391    1.3091
+    ## Marital.StatusWidowed      0.9607     1.0409    0.6728    1.3717
+    ## T.Stage                    1.3307     0.7515    1.1105    1.5946
+    ## N.Stage                    1.4124     0.7080    1.0380    1.9220
+    ## X6th.Stage                 1.0077     0.9923    0.8269    1.2281
+    ## Grade                      1.4832     0.6742    1.2963    1.6971
+    ## Tumor.Size                 0.9992     1.0008    0.9939    1.0045
+    ## Regional.Node.Examined     0.9690     1.0320    0.9568    0.9812
+    ## Reginol.Node.Positive      1.0521     0.9505    1.0295    1.0751
+    ## 
+    ## Concordance= 0.704  (se = 0.014 )
+    ## Likelihood ratio test= 309.6  on 14 df,   p=<2e-16
+    ## Wald test            = 339  on 14 df,   p=<2e-16
+    ## Score (logrank) test = 364  on 14 df,   p=<2e-16
+
+``` r
+cox_zph_strat <- cox.zph(cox_model_strat)
+print(cox_zph_strat)
+```
+
+    ##                         chisq df    p
+    ## Age                     0.355  1 0.55
+    ## Race                    0.844  2 0.66
+    ## Marital.Status          4.525  4 0.34
+    ## T.Stage                 0.562  1 0.45
+    ## N.Stage                 0.315  1 0.57
+    ## X6th.Stage              0.928  1 0.34
+    ## Grade                   0.236  1 0.63
+    ## Tumor.Size              0.277  1 0.60
+    ## Regional.Node.Examined  0.443  1 0.51
+    ## Reginol.Node.Positive   1.552  1 0.21
+    ## GLOBAL                 11.635 14 0.64
 
 # 4. Model Building: Logistic Regression
 
@@ -873,7 +828,7 @@ best_lambda <- lasso_model$lambda.min
 best_lambda
 ```
 
-    ## [1] 0.0008539408
+    ## [1] 0.0007089567
 
 ``` r
 # select variables
@@ -952,7 +907,7 @@ ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
   scale_color_manual(values = c("black", "purple"), labels = c("Not Influential", "Influential"))
 ```
 
-![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 ## Likelihood Ratio Test
 
@@ -1220,13 +1175,13 @@ logistics_gam_auto <- gam(Status ~ s(Age) + Race + T.Stage + N.Stage + Grade +
 plot(logistics_gam_auto, page = 1, residuals = TRUE)
 ```
 
-![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ``` r
 gam.check(logistics_gam_auto)
 ```
 
-![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-7-2.png)<!-- -->
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-8-2.png)<!-- -->
 
     ## 
     ## Method: UBRE   Optimizer: outer newton
@@ -1240,10 +1195,10 @@ gam.check(logistics_gam_auto)
     ## indicate that k is too low, especially if edf is close to k'.
     ## 
     ##                                k'    edf k-index p-value
-    ## s(Age)                     9.0000 2.9751    0.97    0.60
-    ## s(Regional.Node.Examined)  9.0000 1.5028    0.95    0.29
-    ## s(Reginol.Node.Positive)   9.0000 3.9292    0.96    0.31
-    ## te(Regional.Node.Examined) 3.0000 0.0555    0.95    0.28
+    ## s(Age)                     9.0000 2.9751    0.97    0.61
+    ## s(Regional.Node.Examined)  9.0000 1.5028    0.95    0.36
+    ## s(Reginol.Node.Positive)   9.0000 3.9292    0.96    0.30
+    ## te(Regional.Node.Examined) 3.0000 0.0555    0.95    0.34
 
 ``` r
 AIC(logistics_gam_auto, logistics)
@@ -1262,13 +1217,13 @@ logistics_gam_lasso <- gam(Status ~ s(Age) + Race + Marital.Status + T.Stage + N
 plot(logistics_gam_auto, page = 1, residuals = TRUE)
 ```
 
-![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-7-3.png)<!-- -->
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-8-3.png)<!-- -->
 
 ``` r
 gam.check(logistics_gam_auto)
 ```
 
-![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-7-4.png)<!-- -->
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-8-4.png)<!-- -->
 
     ## 
     ## Method: UBRE   Optimizer: outer newton
@@ -1283,9 +1238,9 @@ gam.check(logistics_gam_auto)
     ## 
     ##                                k'    edf k-index p-value
     ## s(Age)                     9.0000 2.9751    0.97    0.60
-    ## s(Regional.Node.Examined)  9.0000 1.5028    0.95    0.29
-    ## s(Reginol.Node.Positive)   9.0000 3.9292    0.96    0.31
-    ## te(Regional.Node.Examined) 3.0000 0.0555    0.95    0.21
+    ## s(Regional.Node.Examined)  9.0000 1.5028    0.95    0.28
+    ## s(Reginol.Node.Positive)   9.0000 3.9292    0.96    0.32
+    ## te(Regional.Node.Examined) 3.0000 0.0555    0.95    0.32
 
 ``` r
 AIC(logistics_gam_auto, logistics_test2)
@@ -1379,14 +1334,14 @@ plot(residuals, main = "Residual Plot", xlab = "Index", ylab = "Residuals")
 abline(h = 0, col = "red")
 ```
 
-![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ``` r
 #outlier assumption
 plot(test_logit_model2, which = 4, id.n = 3)
 ```
 
-![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-8-2.png)<!-- -->
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-9-2.png)<!-- -->
 
 ``` r
 model.data <- broom::augment(test_logit_model2) %>% 
@@ -1396,10 +1351,10 @@ model.data %>% top_n(3, .cooksd)
 
     ## # A tibble: 3 × 22
     ##   Status   Age Race  Marital.Status T.Stage N.Stage Grade A.Stage Tumor.Size
-    ##   <fct>  <int> <fct> <fct>            <dbl>   <dbl> <dbl>   <dbl>      <int>
-    ## 1 Dead      46 White Separated            2       1     3       1         25
-    ## 2 Dead      67 White Separated            1       1     2       1         15
-    ## 3 Dead      42 Other Separated            2       1     3       1         21
+    ##    <dbl> <int> <fct> <fct>            <dbl>   <dbl> <dbl>   <dbl>      <int>
+    ## 1      1    46 White Separated            2       1     3       1         25
+    ## 2      1    67 White Separated            1       1     2       1         15
+    ## 3      1    42 Other Separated            2       1     3       1         21
     ## # ℹ 13 more variables: Estrogen.Status <fct>, Progesterone.Status <fct>,
     ## #   Regional.Node.Examined <int>, Reginol.Node.Positive <int>,
     ## #   Survival.Months <int>, predicted_probs <dbl[1d]>, .fitted <dbl>,
@@ -1412,7 +1367,7 @@ ggplot(model.data, aes(index, .std.resid)) +
   theme_bw()
 ```
 
-![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-8-3.png)<!-- -->
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-9-3.png)<!-- -->
 
 ``` r
 model.data %>% 
@@ -1421,11 +1376,11 @@ model.data %>%
 
     ## # A tibble: 4 × 22
     ##   Status   Age Race  Marital.Status T.Stage N.Stage Grade A.Stage Tumor.Size
-    ##   <fct>  <int> <fct> <fct>            <dbl>   <dbl> <dbl>   <dbl>      <int>
-    ## 1 Dead      38 Other Divorced             1       1     2       1         20
-    ## 2 Dead      51 White Married              1       1     2       1         18
-    ## 3 Dead      40 Other Single               3       1     2       1         60
-    ## 4 Dead      61 White Divorced             1       1     2       1         10
+    ##    <dbl> <int> <fct> <fct>            <dbl>   <dbl> <dbl>   <dbl>      <int>
+    ## 1      1    38 Other Divorced             1       1     2       1         20
+    ## 2      1    51 White Married              1       1     2       1         18
+    ## 3      1    40 Other Single               3       1     2       1         60
+    ## 4      1    61 White Divorced             1       1     2       1         10
     ## # ℹ 13 more variables: Estrogen.Status <fct>, Progesterone.Status <fct>,
     ## #   Regional.Node.Examined <int>, Reginol.Node.Positive <int>,
     ## #   Survival.Months <int>, predicted_probs <dbl[1d]>, .fitted <dbl>,
@@ -1452,7 +1407,7 @@ ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
   scale_color_manual(values = c("black", "purple"), labels = c("Not Influential", "Influential"))
 ```
 
-![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-8-4.png)<!-- -->
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/unnamed-chunk-9-4.png)<!-- -->
 
 Here we diagnose the logistric regression model by testing its
 assumption. According to the results, we found non-linear relationship

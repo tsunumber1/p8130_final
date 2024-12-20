@@ -38,7 +38,7 @@ data_cleaned <- data %>%
     A.Stage = factor(A.Stage),
     Estrogen.Status = factor(Estrogen.Status),
     Progesterone.Status = factor(Progesterone.Status),
-    Status = factor(Status)
+    Status = ifelse(Status == "Dead", 1, 0)
   ) %>% 
   mutate(
     T.Stage = as.numeric(factor(T.Stage, levels = c("T1", "T2", "T3", "T4"), ordered = TRUE)),
@@ -162,11 +162,8 @@ for (i in 1:(nrow(cor_matrix) - 1)) {
 # 3. Model Building: Survival Analysis
 
 ```{r}
-# Convert Status to binary (Dead = 1, Alive = 0)
-data$Status <- ifelse(data$Status == "Dead", 1, 0)
-
 # Build Cox Proportional Hazards model
-cox_model <- coxph(Surv(Survival.Months, Status) ~ ., data = data)
+cox_model <- coxph(Surv(Survival.Months, Status) ~ ., data = data_cleaned)
 summary(cox_model)
 
 # Save model summary
@@ -178,6 +175,33 @@ write.csv(tidy_cox, "cox_model_summary.csv")
 c_index <- summary(cox_model)$concordance
 cat("Concordance Index:", c_index, "\n")
 ```
+
+## Model Diagnositics
+
+```{r}
+cox_zph <- cox.zph(cox_model)
+print(cox_zph)
+
+
+# # Alternatively, using ggplot2 for enhanced visualization
+# ggcoxzph(cox_zph)
+
+
+# Fit Cox model with stratification on violating covariates
+cox_model_strat <- coxph(Surv(Survival.Months, Status) ~ Age + Race + Marital.Status + T.Stage + 
+                          N.Stage + X6th.Stage + Grade + Tumor.Size + 
+                          Regional.Node.Examined + Reginol.Node.Positive + 
+                          strata(A.Stage) + strata(Estrogen.Status) + 
+                          strata(Progesterone.Status), 
+                        data = data_cleaned)
+
+summary(cox_model_strat)
+
+cox_zph_strat <- cox.zph(cox_model_strat)
+print(cox_zph_strat)
+
+```
+
 
 # 4. Model Building: Logistic Regression
 
