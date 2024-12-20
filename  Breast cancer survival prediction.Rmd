@@ -231,6 +231,14 @@ AIC = c(AIC(forward_model), AIC(backward_model), AIC(stepwise)),
 BIC = c(BIC(forward_model), BIC(backward_model), BIC(stepwise))
 ) 
 results
+
+#compare AIC with and without Estrogen.StatusPosive
+Estrogen.Status_included_backward = glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + Estrogen.Status + Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + Survival.Months, family = binomial, data = data_cleaned)
+
+Estrogen.Status_excluded_backward = glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + Survival.Months, family = binomial, data = data_cleaned) 
+
+AIC_backward = AIC(Estrogen.Status_included_backward, Estrogen.Status_excluded_backward) 
+print(AIC_backward)
 ```
 
 # logistic regression
