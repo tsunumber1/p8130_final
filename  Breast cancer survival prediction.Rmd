@@ -83,8 +83,38 @@ missing_percentage
 # Clean Data
 
 ```{r data_cleaning}
-lapply(data, table)
+lapply(data, unique)
+
+data_cleaned <- data %>%
+  mutate(
+    Race = factor(Race),
+    Marital.Status = factor(trimws(Marital.Status)),
+    T.Stage = factor(T.Stage),
+    N.Stage = factor(N.Stage),
+    X6th.Stage = factor(X6th.Stage),
+    differentiate = factor(differentiate),
+    Grade = factor(trimws(Grade)),  # Trim spaces before factoring
+    A.Stage = factor(A.Stage),
+    Estrogen.Status = factor(Estrogen.Status),
+    Progesterone.Status = factor(Progesterone.Status),
+    Status = factor(Status)
+  ) %>% 
+  mutate(
+    # For Grade, assuming order: 1 < 2 < 3 < anaplastic; Grade IV
+    Grade = factor(Grade, levels = c("1", "2", "3", "anaplastic; Grade IV"), ordered = TRUE),
+    # For X6th.Stage, assuming the natural order: IIA < IIB < IIIA < IIIB < IIIC
+    X6th.Stage = factor(X6th.Stage, levels = c("IIA", "IIB", "IIIA", "IIIB", "IIIC"), ordered = TRUE),
+    # For A.Stage, assuming Regional < Distant
+    A.Stage = factor(A.Stage, levels = c("Regional", "Distant"), ordered = TRUE),
+    # T.Stage: T1 < T2 < T3 < T4
+    T.Stage = factor(T.Stage, levels = c("T1", "T2", "T3", "T4"), ordered = TRUE),
+    # N.Stage: N1 < N2 < N3
+    N.Stage = factor(N.Stage, levels = c("N1", "N2", "N3"), ordered = TRUE)
+  )
+
 ```
+
+`Grade` and `differentiate` are redundant, so we need to keep only one.
 
 # 2. Data Visualization
 ```{r}
