@@ -22,7 +22,35 @@ library(car)
 ```{r}
 # Load dataset
 data <- read.csv("./data/Project_2_data.csv")
+
+# Clean dataset
+lapply(data, table)
+
+data_cleaned <- data %>%
+  mutate(
+    Race = factor(Race),
+    Marital.Status = factor(trimws(Marital.Status)),
+    T.Stage = factor(T.Stage),
+    N.Stage = factor(N.Stage),
+    X6th.Stage = factor(X6th.Stage),
+    differentiate = factor(differentiate),
+    Grade = factor(trimws(Grade)),  # Trim spaces before factoring
+    A.Stage = factor(A.Stage),
+    Estrogen.Status = factor(Estrogen.Status),
+    Progesterone.Status = factor(Progesterone.Status),
+    Status = factor(Status)
+  ) %>% 
+  mutate(
+    T.Stage = factor(T.Stage, levels = c("T1", "T2", "T3", "T4"), ordered = FALSE),
+    N.Stage = factor(N.Stage, levels = c("N1", "N2", "N3"), ordered = FALSE),
+    X6th.Stage = factor(X6th.Stage, levels = c("IIA", "IIB", "IIIA", "IIIB", "IIIC"), ordered = FALSE),
+    Grade = factor(Grade, levels = c("1", "2", "3", "anaplastic; Grade IV"), ordered = FALSE),
+    A.Stage = factor(A.Stage, levels = c("Regional", "Distant"), ordered = FALSE)
+  ) %>% 
+  select(-differentiate)
 ```
+
+`Grade` and `differentiate` are redundant variables, so we drop `differentiate`.
 
 # 1. Descriptive Summary
 ```{r}
@@ -82,41 +110,6 @@ missing_percentage <- data |>
 missing_percentage
 ```
 
-# Clean Data
-
-```{r data_cleaning}
-lapply(data, unique)
-
-data_cleaned <- data %>%
-  mutate(
-    Race = factor(Race),
-    Marital.Status = factor(trimws(Marital.Status)),
-    T.Stage = factor(T.Stage),
-    N.Stage = factor(N.Stage),
-    X6th.Stage = factor(X6th.Stage),
-    differentiate = factor(differentiate),
-    Grade = factor(trimws(Grade)),  # Trim spaces before factoring
-    A.Stage = factor(A.Stage),
-    Estrogen.Status = factor(Estrogen.Status),
-    Progesterone.Status = factor(Progesterone.Status),
-    Status = factor(Status)
-  ) %>% 
-  mutate(
-    # For Grade, assuming order: 1 < 2 < 3 < anaplastic; Grade IV
-    Grade = factor(Grade, levels = c("1", "2", "3", "anaplastic; Grade IV"), ordered = TRUE),
-    # For X6th.Stage, assuming the natural order: IIA < IIB < IIIA < IIIB < IIIC
-    X6th.Stage = factor(X6th.Stage, levels = c("IIA", "IIB", "IIIA", "IIIB", "IIIC"), ordered = TRUE),
-    # For A.Stage, assuming Regional < Distant
-    A.Stage = factor(A.Stage, levels = c("Regional", "Distant"), ordered = TRUE),
-    # T.Stage: T1 < T2 < T3 < T4
-    T.Stage = factor(T.Stage, levels = c("T1", "T2", "T3", "T4"), ordered = TRUE),
-    # N.Stage: N1 < N2 < N3
-    N.Stage = factor(N.Stage, levels = c("N1", "N2", "N3"), ordered = TRUE)
-  )
-
-```
-
-`Grade` and `differentiate` are redundant, so we need to keep only one.
 
 # 2. Data Visualization
 ```{r}
@@ -194,7 +187,22 @@ c_index <- summary(cox_model)$concordance
 cat("Concordance Index:", c_index, "\n")
 ```
 
-# Varibales selection
+# 4. Model Building: Logistic Regression
+
+# Model Diagnostics
+
+```{r logit_diagnostics}
+
+logistic <- glm(Status ~ ., family = binomial, data = data)
+# alias_info <- alias(logistic)
+# print(alias_info)
+# logit_vif_values <- vif(logistic)
+# print(logit_vif_values)
+```
+
+
+## Varibales selection
+
 ```{r}
 # Building model
 logistic_full <- glm(Status ~ (.)^2, family = binomial, data = data_cleaned)

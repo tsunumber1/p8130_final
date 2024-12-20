@@ -6,7 +6,152 @@ Tong Su
 ``` r
 # Load dataset
 data <- read.csv("./data/Project_2_data.csv")
+
+# Clean dataset
+lapply(data, table)
 ```
+
+    ## $Age
+    ## 
+    ##  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49 
+    ##   5  14  13  15  14  20  24  28  45  52  72  71  82  92  79 102 163 161 140 162 
+    ##  50  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69 
+    ## 144 148 118 155 128 154 132 144 120 147 140 143 149 153 116 122 119 119 111 108 
+    ## 
+    ## $Race
+    ## 
+    ## Black Other White 
+    ##   291   320  3413 
+    ## 
+    ## $Marital.Status
+    ## 
+    ##  Divorced   Married Separated   Single    Widowed 
+    ##       486      2643        45       615       235 
+    ## 
+    ## $T.Stage
+    ## 
+    ##   T1   T2   T3   T4 
+    ## 1603 1786  533  102 
+    ## 
+    ## $N.Stage
+    ## 
+    ##   N1   N2   N3 
+    ## 2732  820  472 
+    ## 
+    ## $X6th.Stage
+    ## 
+    ##  IIA  IIB IIIA IIIB IIIC 
+    ## 1305 1130 1050   67  472 
+    ## 
+    ## $differentiate
+    ## 
+    ## Moderately differentiated     Poorly differentiated          Undifferentiated 
+    ##                      2351                      1111                        19 
+    ##       Well differentiated 
+    ##                       543 
+    ## 
+    ## $Grade
+    ## 
+    ##  anaplastic; Grade IV                     1                     2 
+    ##                    19                   543                  2351 
+    ##                     3 
+    ##                  1111 
+    ## 
+    ## $A.Stage
+    ## 
+    ##  Distant Regional 
+    ##       92     3932 
+    ## 
+    ## $Tumor.Size
+    ## 
+    ##   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20 
+    ##   7  12   9  14  25  23  42  40  49  92  77 118  81  92 271 104 120 158  75 211 
+    ##  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40 
+    ## 108 115  78  69 268  42  61  57  22 228  28  50  25  24 161  17  26  28  10 145 
+    ##  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60 
+    ##   6  28  10   8  77   9  16  12   3  93  21  20   5   6  64   5   7   6   4  92 
+    ##  61  62  63  64  65  66  67  68  69  70  72  73  74  75  76  77  78  79  80  81 
+    ##   7   7  10   1  29   3   1   7   2  61   5   1   5  24   5   2   3   1  46   2 
+    ##  82  83  84  85  86  87  88  90  92  94  95  96  97  98 100 101 103 104 105 107 
+    ##   3   3   2  10   1   1   1  27   2   1   5   1   2   1  25   2   1   1   3   1 
+    ## 108 110 115 117 120 123 125 130 133 140 
+    ##   1   4   1   1  15   1   1   5   1   5 
+    ## 
+    ## $Estrogen.Status
+    ## 
+    ## Negative Positive 
+    ##      269     3755 
+    ## 
+    ## $Progesterone.Status
+    ## 
+    ## Negative Positive 
+    ##      698     3326 
+    ## 
+    ## $Regional.Node.Examined
+    ## 
+    ##   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20 
+    ##  97 137 116 114 110 115 104 148 198 183 191 205 251 225 195 221 175 176 152 126 
+    ##  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40 
+    ## 109  82  98  84  58  64  49  45  34  27  20  22  13   8  10   9   8   4   6   5 
+    ##  41  42  43  44  45  46  47  49  51  52  54  57  60  61 
+    ##   6   2   3   1   1   1   6   2   3   1   1   1   1   1 
+    ## 
+    ## $Reginol.Node.Positive
+    ## 
+    ##    1    2    3    4    5    6    7    8    9   10   11   12   13   14   15   16 
+    ## 1522  740  420  261  207  140  108   75   90   61   56   50   33   41   26   29 
+    ##   17   18   19   20   21   22   23   24   25   26   27   28   29   30   31   32 
+    ##   26   15   23   10   13   16    8    8    3   10    6    7    6    2    1    2 
+    ##   33   34   35   37   41   46 
+    ##    2    2    1    2    1    1 
+    ## 
+    ## $Survival.Months
+    ## 
+    ##   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20 
+    ##   1   3   4  10   6   8   5   7   9   8   4   6  12  10   6   8   6  11   5  10 
+    ##  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40 
+    ##   7  11  16  12  12   5  13   8   7  10  15   5   9  11  11  11  11  13   9  18 
+    ##  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60 
+    ##  24  14  10  16  16  14  26  54  61  67  55  62  61  59  63  73  53  61  61  63 
+    ##  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79  80 
+    ##  60  52  73  62  55  71  61  63  81  49  41  57  55  56  65  59  64  56  55  68 
+    ##  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95  96  97  98  99 100 
+    ##  68  61  66  58  52  57  53  63  66  43  51  49  62  57  67  54  57  72  55  66 
+    ## 101 102 103 104 105 106 107 
+    ##  54  73  50  48  45  47  61 
+    ## 
+    ## $Status
+    ## 
+    ## Alive  Dead 
+    ##  3408   616
+
+``` r
+data_cleaned <- data %>%
+  mutate(
+    Race = factor(Race),
+    Marital.Status = factor(trimws(Marital.Status)),
+    T.Stage = factor(T.Stage),
+    N.Stage = factor(N.Stage),
+    X6th.Stage = factor(X6th.Stage),
+    differentiate = factor(differentiate),
+    Grade = factor(trimws(Grade)),  # Trim spaces before factoring
+    A.Stage = factor(A.Stage),
+    Estrogen.Status = factor(Estrogen.Status),
+    Progesterone.Status = factor(Progesterone.Status),
+    Status = factor(Status)
+  ) %>% 
+  mutate(
+    T.Stage = factor(T.Stage, levels = c("T1", "T2", "T3", "T4"), ordered = FALSE),
+    N.Stage = factor(N.Stage, levels = c("N1", "N2", "N3"), ordered = FALSE),
+    X6th.Stage = factor(X6th.Stage, levels = c("IIA", "IIB", "IIIA", "IIIB", "IIIC"), ordered = FALSE),
+    Grade = factor(Grade, levels = c("1", "2", "3", "anaplastic; Grade IV"), ordered = FALSE),
+    A.Stage = factor(A.Stage, levels = c("Regional", "Distant"), ordered = FALSE)
+  ) %>% 
+  select(-differentiate)
+```
+
+`Grade` and `differentiate` are redundant variables, so we drop
+`differentiate`.
 
 # 1. Descriptive Summary
 
@@ -109,108 +254,6 @@ missing_percentage
     ## 1                                 0                           0
     ##   missing_pct_Status
     ## 1                  0
-
-# Clean Data
-
-``` r
-lapply(data, unique)
-```
-
-    ## $Age
-    ##  [1] 68 50 58 47 51 40 69 46 65 48 62 61 56 43 60 57 55 63 66 53 59 54 49 64 42
-    ## [26] 37 67 31 52 33 45 38 39 36 41 44 32 34 35 30
-    ## 
-    ## $Race
-    ## [1] "White" "Black" "Other"
-    ## 
-    ## $Marital.Status
-    ## [1] "Married"   "Divorced"  "Single "   "Widowed"   "Separated"
-    ## 
-    ## $T.Stage
-    ## [1] "T1" "T2" "T3" "T4"
-    ## 
-    ## $N.Stage
-    ## [1] "N1" "N2" "N3"
-    ## 
-    ## $X6th.Stage
-    ## [1] "IIA"  "IIIA" "IIIC" "IIB"  "IIIB"
-    ## 
-    ## $differentiate
-    ## [1] "Poorly differentiated"     "Moderately differentiated"
-    ## [3] "Well differentiated"       "Undifferentiated"         
-    ## 
-    ## $Grade
-    ## [1] "3"                     "2"                     "1"                    
-    ## [4] " anaplastic; Grade IV"
-    ## 
-    ## $A.Stage
-    ## [1] "Regional" "Distant" 
-    ## 
-    ## $Tumor.Size
-    ##   [1]   4  35  63  18  41  20   8  30 103  32  13  59  15  19  46  24  25  29
-    ##  [19]  40  70  22  50  17  21  10  27  23   5  51   9  55 120  77   2  11  12
-    ##  [37]  26  75 130  34  80   3  60  14  16  45  36  76  38  49   7  72 100  43
-    ##  [55]  62  37  68  52  85  57  39  28  48 110  65   6 105 140  42  31  90 108
-    ##  [73]  98  47  54  61  74  33   1  87  81  58 117  44 123 133  95 107  92  69
-    ##  [91]  56  82  66  78  97  88  53  83 101  84 115  73 125 104  94  86  64  96
-    ## [109]  79  67
-    ## 
-    ## $Estrogen.Status
-    ## [1] "Positive" "Negative"
-    ## 
-    ## $Progesterone.Status
-    ## [1] "Positive" "Negative"
-    ## 
-    ## $Regional.Node.Examined
-    ##  [1] 24 14  2  3 18 11  9 20 21 13 23 16  1 22 15  4 26 31 25 10  5  6 19 12  8
-    ## [26] 17  7 49 33 30 34 28 32 27 42 29 41 39 46 40 51 44 38 47 54 36 61 37 35 43
-    ## [51] 52 45 57 60
-    ## 
-    ## $Reginol.Node.Positive
-    ##  [1]  1  5  7  2 18 12  3 14 22 17 23  4 10  6  9  8 20 16 13 11 24 27 21 26 15
-    ## [26] 28 19 29 31 46 33 37 30 35 25 32 41 34
-    ## 
-    ## $Survival.Months
-    ##   [1]  60  62  75  84  50  89  54  14  70  92  64  56  38  49 105 107  77  81
-    ##  [19]  78 102  98  82  86  52  90  31  37 103  42  61  63  39  59  71  74  73
-    ##  [37]  91 106  80  44  85  79 104  12  95  55 101  65  72  57  87  40  25   8
-    ##  [55]  53  58  24  66  69  93  94 100  96  41  67  51  13  11  47  23  45  68
-    ##  [73]  76  15  16  99   7  48  88  34  97  83  17   3  22  30   6  32   9   5
-    ##  [91]  10  19  18  35  27  36   4  29  33  26  20  28  43   1  46  21   2
-    ## 
-    ## $Status
-    ## [1] "Alive" "Dead"
-
-``` r
-data_cleaned <- data %>%
-  mutate(
-    Race = factor(Race),
-    Marital.Status = factor(trimws(Marital.Status)),
-    T.Stage = factor(T.Stage),
-    N.Stage = factor(N.Stage),
-    X6th.Stage = factor(X6th.Stage),
-    differentiate = factor(differentiate),
-    Grade = factor(trimws(Grade)),  # Trim spaces before factoring
-    A.Stage = factor(A.Stage),
-    Estrogen.Status = factor(Estrogen.Status),
-    Progesterone.Status = factor(Progesterone.Status),
-    Status = factor(Status)
-  ) %>% 
-  mutate(
-    # For Grade, assuming order: 1 < 2 < 3 < anaplastic; Grade IV
-    Grade = factor(Grade, levels = c("1", "2", "3", "anaplastic; Grade IV"), ordered = TRUE),
-    # For X6th.Stage, assuming the natural order: IIA < IIB < IIIA < IIIB < IIIC
-    X6th.Stage = factor(X6th.Stage, levels = c("IIA", "IIB", "IIIA", "IIIB", "IIIC"), ordered = TRUE),
-    # For A.Stage, assuming Regional < Distant
-    A.Stage = factor(A.Stage, levels = c("Regional", "Distant"), ordered = TRUE),
-    # T.Stage: T1 < T2 < T3 < T4
-    T.Stage = factor(T.Stage, levels = c("T1", "T2", "T3", "T4"), ordered = TRUE),
-    # N.Stage: N1 < N2 < N3
-    N.Stage = factor(N.Stage, levels = c("N1", "N2", "N3"), ordered = TRUE)
-  )
-```
-
-`Grade` and `differentiate` are redundant, so we need to keep only one.
 
 # 2. Data Visualization
 
@@ -420,11 +463,22 @@ cat("Concordance Index:", c_index, "\n")
 
     ## Concordance Index: 0.7437448 0.01069854
 
-# Varibales selection
+# 4. Model Building: Logistic Regression
+
+# Model Diagnostics
+
+``` r
+logistic <- glm(Status ~ ., family = binomial, data = data)
+# alias_info <- alias(logistic)
+# print(alias_info)
+# logit_vif_values <- vif(logistic)
+# print(logit_vif_values)
+```
+
+## Varibales selection
 
 ``` r
 # backward selection
-logistic <- glm(Status ~ ., family = binomial, data = data)
 backward_model <- step(logistic, direction = "backward")
 ```
 
