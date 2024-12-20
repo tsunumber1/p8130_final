@@ -21,7 +21,7 @@ library(glmnet)
 library(mgcv)
 ```
 
-```{r}
+```{r data_cleaning}
 # Load dataset
 data <- read.csv("./data/Project_2_data.csv")
 
@@ -197,7 +197,7 @@ backward_model <- step(logistic_full, direction = "backward")
 forward_model <- step(logistic_null, scope = list(lower = logistic_full, upper = logistic_null), direction = "forward")
 
 # stepwise selection
-stepwise <- step(null_logistic, scope = list(lower = logistic_full, upper = logistic_null), direction = "both")
+stepwise <- step(logistic_null, scope = list(lower = logistic_full, upper = logistic_null), direction = "both")
 
 # examine if the same model was build
 formula(backward_model)
@@ -292,7 +292,7 @@ selected_predictors
 
 #logistics regression
 logistics_test2 <- glm(Status ~ Age + Race + Marital.Status + T.Stage + N.Stage + Grade + Tumor.Size + Estrogen.Status + Progesterone.Status + Regional.Node.Examined + Survival.Months, data = data_cleaned, family = binomial)
-summary(logistic1)
+summary(logistics_test2)
 
 #diagosis
 std_residuals <- rstandard(logistics_test2)
@@ -425,15 +425,24 @@ data_cleaned$predicted_probs <- predict(logistics_gam_auto, type = "response")
 
 ```{r logit_diagnostics}
 # Test for linearity
-box_tidwell <- boxTidwell(Status ~ Age + Tumor.Size + Estrogen.Status + Progesterone.Status
-                          + Regional.Node.Examined + Reginol.Node.Positive + 
-                          T.Stage + N.Stage + X6th.Stage + Grade + A.Stage, 
-                          data = data_cleaned)
-print(box_tidwell)
+test_logit_model <- glm(Status ~ ., family = binomial, data = data_cleaned)
+probabilities <- predict(test_logit_model, type = "response")
+mydata <- data_cleaned %>%
+  dplyr::select(Age, Tumor.Size, Regional.Node.Examined, Reginol.Node.Positive)
 
-logistic <- glm(Status ~ ., family = binomial, data = data_cleaned)
+predictors <- colnames(mydata)
+# Bind the logit and tidying the data for plot
+mydata <- mydata %>%
+  mutate(logit = log(probabilities/(1-probabilities))) %>%
+  gather(key = "predictors", value = "predictor.value", -logit)
 
-logit_vif_values <- vif(logistic)
+ggplot(mydata, aes(logit, predictor.value))+
+  geom_point(size = 0.5, alpha = 0.5) +
+  geom_smooth(method = "loess") + 
+  theme_bw() + 
+  facet_wrap(~predictors, scales = "free_y")
+
+logit_vif_values <- vif(test_logit_model)
 print(logit_vif_values)
 data_cleaned <- data_cleaned %>% 
   select(-X6th.Stage, -Reginol.Node.Positive)
