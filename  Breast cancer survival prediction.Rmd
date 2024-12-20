@@ -54,6 +54,7 @@ data_cleaned <- data %>%
 `Grade` and `differentiate` are redundant variables, so we drop `differentiate`.
 
 # 1. Descriptive Summary
+
 ```{r}
 # summary_stats for numeric predictors
 summary_numeric <- data_cleaned |> 
@@ -88,8 +89,8 @@ missing_percentage <- data_cleaned |>
 missing_percentage
 ```
 
-
 # 2. Data Visualization
+
 ```{r}
 # Distribution of continuous variables
 numeric_vars <- data_cleaned |> select_if(is.numeric)
@@ -160,6 +161,7 @@ for (i in 1:(nrow(cor_matrix) - 1)) {
 ```
 
 # 3. Model Building: Survival Analysis
+
 ```{r}
 # Convert Status to binary (Dead = 1, Alive = 0)
 data$Status <- ifelse(data$Status == "Dead", 1, 0)
@@ -264,6 +266,7 @@ result4
 ```
 
 # try using lasso for model selection
+
 ```{r}
 predictors <- model.matrix(Status ~ ., data = data_cleaned)[, -1]
 patients_status <- as.numeric(data_cleaned$Status)
@@ -310,6 +313,7 @@ ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
 ```
 
 # Likelihood Ratio Test
+
 ```{r}
 #Regional.Node.Examined * Reginol.Node.Positive!!!!!!!
 interaction_model <- glm(Status ~ Regional.Node.Examined * Reginol.Node.Positive, data = data_cleaned, family = binomial)
@@ -380,14 +384,16 @@ print(lrt)
 ```
 
 # logistic regression
+
 ```{r}
+# with Reginol.Node.Positive and Regional.Node.Examined * Reginol.Node.Positive
 logistics <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + 
     Estrogen.Status + Progesterone.Status + Regional.Node.Examined + 
     Reginol.Node.Positive + Regional.Node.Examined * 
     Reginol.Node.Positive, family = binomial, data = data_cleaned)
 summary(logistics)
 
-#without interaction terms
+# without Reginol.Node.Positive adn the interaction terms
 logistics2 <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + 
     Estrogen.Status + Progesterone.Status + Regional.Node.Examined, family = binomial, data = data_cleaned)
 ```
@@ -445,9 +451,7 @@ ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
   theme_minimal() +
   scale_color_manual(values = c("black", "purple"), labels = c("Not Influential", "Influential"))
 ```
-
-
-
+4
 # 4. Fairness Analysis
 
 
