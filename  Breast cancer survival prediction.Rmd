@@ -202,20 +202,17 @@ data_cleaned <- data_cleaned %>%
 
 ```{r}
 # Building model
-logistic_full <- glm(Status ~ ., family = binomial, data = data_cleaned)
+logistic_full <- glm(Status ~ . + T.Stage*Tumor.Size + N.Stage*X6th.Stage + N.Stage*Reginol.Node.Positive + X6th.Stage*Reginol.Node.Positive, family = binomial, data = data_cleaned)
 logistic_null <- glm(Status ~ 1, family = binomial, data = data_cleaned)
 
 # backward selection
 backward_model <- step(logistic_full, direction = "backward")
-AIC(backward_model)
 
 # forward selection
 forward_model <- step(logistic_null, scope = list(lower = logistic_full, upper = logistic_null), direction = "forward")
-AIC(forward_model)
 
 # stepwise selection
 stepwise <- step(null_logistic, scope = list(lower = logistic_full, upper = logistic_null), direction = "both")
-AIC(stepwise)
 
 # examine if the same model was build
 formula(backward_model)
@@ -230,7 +227,8 @@ summary(stepwise)
 # results
 results <- data.frame(
 Model = c("forward", "backward", "stepwise"),
-AIC = c(AIC(forward_model), AIC(backward_model), AIC(stepwise)), BIC = c(BIC(forward_model), BIC(backward_model), BIC(stepwise))
+AIC = c(AIC(forward_model), AIC(backward_model), AIC(stepwise)), 
+BIC = c(BIC(forward_model), BIC(backward_model), BIC(stepwise))
 ) 
 results
 ```
