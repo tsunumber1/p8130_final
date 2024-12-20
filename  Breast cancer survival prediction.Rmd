@@ -55,7 +55,7 @@ data_cleaned <- data %>%
 # 1. Descriptive Summary
 ```{r}
 # summary_stats for numeric predictors
-summary_numeric <- data |> 
+summary_numeric <- data_cleaned |> 
   select_if(is.numeric) |>
   summarise_all(list(
     mean = ~mean(.x, na.rm = TRUE), 
@@ -81,31 +81,8 @@ summary_numeric_wide <- summary_numeric_long |>
   )
 summary_numeric_wide
 
-#summary_stats for categorical predictors
-summary_categorical <- data |> 
-  select_if(is.character) |>   
-  summarise_all(~ {
-    freq_table <- table(.)
-    summary <- paste(
-      paste0(names(freq_table), " (", as.vector(freq_table), " - ", 
-             round(prop.table(freq_table) * 100, 2), "%)"), 
-      collapse = "; "
-    )
-    summary
-  })
-
-summary_categorical_long <- summary_categorical |> 
-  pivot_longer(
-    cols = everything(), 
-    names_to = "Variable",
-    values_to = "Summary"
-  ) |> 
-  unnest(Summary)
-
-summary_categorical_long
-
 # Missing data
-missing_percentage <- data |> 
+missing_percentage <- data_cleaned |> 
   summarise(across(everything(), ~ mean(is.na(.)) * 100, .names = "missing_pct_{.col}"))
 missing_percentage
 ```
@@ -114,11 +91,11 @@ missing_percentage
 # 2. Data Visualization
 ```{r}
 # Distribution of continuous variables
-numeric_vars <- data |> select_if(is.numeric)
+numeric_vars <- data_cleaned |> select_if(is.numeric)
 
 # Histogram for continuous variables
 for (col in names(numeric_vars)) {
-  ggplot(data, aes_string(x = col)) +
+  ggplot(data_cleaned, aes_string(x = col)) +
     geom_histogram(bins = 30, fill = "blue", color = "black") +
     ggtitle(paste("Distribution of", col)) +
     theme_minimal()
@@ -126,7 +103,7 @@ for (col in names(numeric_vars)) {
 
 # Scatter plot for continuous variables
 predictors = c("Age", "Tumor.Size", "Regional.Node.Examined", "Reginol.Node.Positive")
-sorted_data = melt(data, id.vars = "Survival.Months", measure.vars = predictors)
+sorted_data = melt(data_cleaned, id.vars = "Survival.Months", measure.vars = predictors)
 ggplot(sorted_data, aes(x = value, y = Survival.Months)) +
   geom_point(alpha = 1) +
   geom_smooth(method = "lm", color = "blue") +
@@ -136,22 +113,15 @@ ggplot(sorted_data, aes(x = value, y = Survival.Months)) +
        y = "Survival Time (Months)") +
   theme_minimal()
 
-# Correlation heatmap
-cor_matrix <- cor(numeric_vars, use = "complete.obs")
-ggplot(melt(cor_matrix), aes(Var1, Var2, fill = value)) + 
-  geom_tile() + 
-  scale_fill_gradient2() + 
-  ggtitle("Correlation Heatmap") + 
-  theme_minimal()
-
 # Correlation heatmap with correlation coefficient
+cor_matrix <- cor(numeric_vars, use = "complete.obs")
 corrplot(cor_matrix, method = "number", type = "full", tl.col = "black", tl.srt = 45, title = "Correlation Heatmap")
 
 # Bar Plot for categorical variables
-categorical_vars <- names(data)[sapply(data, is.factor) | sapply(data, is.character)]
+categorical_vars <- names(data_cleaned)[sapply(data_cleaned, is.factor) | sapply(data_cleaned, is.character)]
 if (length(categorical_vars) > 0) {
   for (var in categorical_vars) {
-    p <- ggplot(data, aes_string(x = var, fill = var)) +
+    p <- ggplot(data_cleaned, aes_string(x = var, fill = var)) +
       geom_bar() +
       labs(
         title = paste("Distribution of", var),
@@ -165,6 +135,16 @@ if (length(categorical_vars) > 0) {
   }
 } else {
   message("No categorical variables found in the dataset.")
+}
+
+#show pairs with strong correlation
+for (i in 1:(nrow(cor_matrix) - 1)) {
+  for (j in (i + 1):ncol(cor_matrix)) {
+    if (abs(cor_matrix[i, j]) > 0.7) {
+      cat("Pairs with strong correlation:", rownames(cor_matrix)[i], "~", colnames(cor_matrix)[j], 
+          "with correlation =", cor_matrix[i, j], "\n")
+    }
+  }
 }
 ```
 
