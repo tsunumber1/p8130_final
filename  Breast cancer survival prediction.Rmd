@@ -122,6 +122,10 @@ ggplot(melt(cor_matrix), aes(Var1, Var2, fill = value)) +
 # Correlation heatmap with correlation coefficient
 corrplot(cor_matrix, method = "number", type = "full", tl.col = "black", tl.srt = 45, title = "Correlation Heatmap")
 
+# Bar Plot for categorical variables
+ggplot(data, aes(x = Race, fill = Race)) +
+  geom_bar() +
+  labs(title = "Distribution of Race", x = "Race", y = "Count")
 ```
 
 # 3. Model Building: Survival Analysis
