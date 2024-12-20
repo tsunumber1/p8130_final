@@ -18,6 +18,7 @@ library(reshape2)
 library(corrplot)
 library(car)
 library(glmnet)
+library(mgcv)
 ```
 
 ```{r}
@@ -265,7 +266,7 @@ BIC = c(BIC(RNP_included_backward), BIC(RNP_excluded_backward))
 result4
 ```
 
-# try using lasso for model selection
+# try using lasso for model selection and test the model 
 
 ```{r}
 predictors <- model.matrix(Status ~ ., data = data_cleaned)[, -1]
@@ -290,13 +291,13 @@ selected_predictors <- unique(gsub("(.*)\\..*", "\\1", selected_dummies))
 selected_predictors
 
 #logistics regression
-logistic1 <- glm(Status ~ Age + Race + Marital.Status + T.Stage + N.Stage + Grade + Tumor.Size + Estrogen.Status + Progesterone.Status + Regional.Node.Examined + Survival.Months, data = data_cleaned, family = binomial)
+logistics_test2 <- glm(Status ~ Age + Race + Marital.Status + T.Stage + N.Stage + Grade + Tumor.Size + Estrogen.Status + Progesterone.Status + Regional.Node.Examined + Survival.Months, data = data_cleaned, family = binomial)
 summary(logistic1)
 
 #diagosis
-std_residuals <- rstandard(logistic1)
-leverage <- hatvalues(logistic1)
-cooks_distance <- cooks.distance(logistic1)
+std_residuals <- rstandard(logistics_test2)
+leverage <- hatvalues(logistics_test2)
+cooks_distance <- cooks.distance(logistics_test2)
 plot_data <- data.frame(Leverage = leverage, Residuals = std_residuals)
 
 ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
@@ -315,13 +316,13 @@ ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
 # Likelihood Ratio Test
 
 ```{r}
-#Regional.Node.Examined * Reginol.Node.Positive!!!!!!!
+#Regional.Node.Examined * Reginol.Node.Positive (significant, lrt suggests they should be included)
 interaction_model <- glm(Status ~ Regional.Node.Examined * Reginol.Node.Positive, data = data_cleaned, family = binomial)
 base_model <- glm(Status ~ Regional.Node.Examined + Reginol.Node.Positive, data = data_cleaned, family = binomial)
 lrt <- anova(base_model, interaction_model, test = "LRT")
 print(lrt)
 
-#A.Stage * Reginol.Node.Positive !!!
+#A.Stage * Reginol.Node.Positive (significant, lrt suggests they should be included)
 interaction_model <- glm(Status ~ A.Stage * Reginol.Node.Positive, data = data_cleaned, family = binomial)
 base_model <- glm(Status ~ A.Stage + Reginol.Node.Positive, data = data_cleaned, family = binomial)
 lrt <- anova(base_model, interaction_model, test = "LRT")
@@ -394,8 +395,30 @@ logistics <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade +
 summary(logistics)
 
 # without Reginol.Node.Positive adn the interaction terms
-logistics2 <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + 
+logistics_test1 <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + 
     Estrogen.Status + Progesterone.Status + Regional.Node.Examined, family = binomial, data = data_cleaned)
+
+#GAM using predictors from auto procedure
+logistics_gam_auto <- gam(Status ~ s(Age) + Race + T.Stage + N.Stage + Grade + 
+    Estrogen.Status + Progesterone.Status + s(Regional.Node.Examined) + 
+    s(Reginol.Node.Positive) + te(Regional.Node.Examined * 
+    Reginol.Node.Positive),
+    data = data_cleaned,
+    family = binomial)
+plot(logistics_gam_auto, page = 1, residuals = TRUE)
+gam.check(logistics_gam_auto)
+AIC(logistics_gam_auto, logistics)
+data_cleaned$predicted_probs <- predict(logistics_gam_auto, type = "response")
+
+#Gam using predictors from LASSO
+logistics_gam_lasso <- gam(Status ~ s(Age) + Race + Marital.Status + T.Stage + N.Stage + Grade + s(Tumor.Size) + Estrogen.Status + 
+    Progesterone.Status + s(Regional.Node.Examined), data = data_cleaned, family = binomial)
+plot(logistics_gam_auto, page = 1, residuals = TRUE)
+gam.check(logistics_gam_auto)
+AIC(logistics_gam_auto, logistics_test2)
+data_cleaned$predicted_probs <- predict(logistics_gam_auto, type = "response")   
+
+
 ```
 
 # Model Diagnostics
@@ -418,7 +441,7 @@ data_cleaned <- data_cleaned %>%
 
 ```{r}
 # independence of errors
-residuals <- residuals(logistics2, type = "pearson")
+residuals <- residuals(logistics, type = "pearson")
 plot(residuals, main = "Residual Plot", xlab = "Index", ylab = "Residuals")
 abline(h = 0, col = "red")
 
@@ -434,9 +457,9 @@ model.data %>%
   filter(abs(.std.resid) > 3)
 
 # existence of of strongly influential outliers
-std_residuals <- rstandard(logistics2)
+std_residuals <- rstandard(logistics)
 leverage <- hatvalues(logistics2)
-cooks_distance <- cooks.distance(logistics2)
+cooks_distance <- cooks.distance(logistics)
 plot_data <- data.frame(Leverage = leverage, Residuals = std_residuals)
 
 ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
