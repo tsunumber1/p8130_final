@@ -1,6 +1,6 @@
 ---
 title: "Breast cancer survival prediction"
-author: "Tong Su"
+author: "Tong Su, Minghe Wang, Kai Tan, Yifei Chen"
 date: "2024-12-19"
 output: github_document
 ---
