@@ -237,8 +237,16 @@ Estrogen.Status_included_backward = glm(Status ~ Age + Race + T.Stage + N.Stage 
 
 Estrogen.Status_excluded_backward = glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + Survival.Months, family = binomial, data = data_cleaned) 
 
-AIC_backward = AIC(Estrogen.Status_included_backward, Estrogen.Status_excluded_backward) 
-print(AIC_backward)
+AIC_Estrogen.Status = AIC(Estrogen.Status_included_backward, Estrogen.Status_excluded_backward) 
+print(AIC_Estrogen.Status)
+
+#compare AIC with and without N.Stage*Regional.Node.Positive
+Interaction_included_backward = glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + Estrogen.Status + Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + Survival.Months + N.Stage*Reginol.Node.Positive, family = binomial, data = data_cleaned)
+
+Interaction_excluded_backward = glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + Estrogen.Status + Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + Survival.Months, family = binomial, data = data_cleaned)
+
+AIC_interaction = AIC(Interaction_included_backward, Interaction_excluded_backward) 
+print(AIC_interaction)
 ```
 
 # logistic regression
