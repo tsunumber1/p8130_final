@@ -261,7 +261,6 @@ logistics <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + Estrogen.Stat
 summary(logistics)
 ```
 
-
 # Model Diagnostics
 
 ```{r logit_diagnostics}
@@ -278,6 +277,31 @@ logit_vif_values <- vif(logistic)
 print(logit_vif_values)
 data_cleaned <- data_cleaned %>% 
   select(-X6th.Stage, -Reginol.Node.Positive)
+```
+
+```{r}
+# independence of errors
+residuals <- residuals(logistic, type = "pearson")
+plot(residuals, main = "Residual Plot", xlab = "Index", ylab = "Residuals")
+abline(h = 0, col = "red")
+
+# existence of of strongly influential outliers
+std_residuals <- rstandard(logistics)
+leverage <- hatvalues(logistics)
+cooks_distance <- cooks.distance(logistics)
+plot_data <- data.frame(Leverage = leverage, Residuals = std_residuals)
+
+ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
+  geom_point(aes(color = cooks_distance > 4 / nrow(data_cleaned))) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  geom_vline(xintercept = 2 * mean(leverage), linetype = "dashed", color = "blue") +
+  labs(
+    title = "Residuals vs Leverage with Cook's Distance",
+    x = "Leverage (Hat Values)",
+    y = "Standardized Residuals (Deviance)"
+  ) +
+  theme_minimal() +
+  scale_color_manual(values = c("black", "purple"), labels = c("Not Influential", "Influential"))
 ```
 
 # 4. Fairness Analysis
