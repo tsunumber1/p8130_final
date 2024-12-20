@@ -196,16 +196,33 @@ cat("Concordance Index:", c_index, "\n")
 
 # Varibales selection
 ```{r}
+# Building model
+logistic_full <- glm(Status ~ ., family = binomial, data = data_cleaned)
+logistic_null <- glm(Status ~ 1, family = binomial, data = data_cleaned)
+
 # backward selection
-logistic <- glm(Status ~ ., family = binomial, data = data)
 backward_model <- step(logistic, direction = "backward")
 AIC(backward_model)
 
 # forward selection
-null_logistic <- glm(Status ~ 1, family = binomial, data = data)
-forward_model <- step(null_logistic, direction = "forward")
+forward_model <- step(logistic_null, scope = list(lower = logistic_full, upper = logistic_null), direction = "forward")
 AIC(forward_model)
+
+# stepwise selection
+stepwise <- step(null_logistic, scope = list(lower = logistic_full, upper = logistic_null), direction = "both")
+
+# examine if the same model was build
+formula(backward_model)
+formula(forward_model)
+formula(stepwise)
+
+# check if there is a close call
+summary(backward_model)
+summary(forward_model)
+summary(stepwise)
 ```
+
+
 
 
 # 4. Fairness Analysis
