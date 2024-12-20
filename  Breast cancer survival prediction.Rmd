@@ -197,7 +197,7 @@ cat("Concordance Index:", c_index, "\n")
 # Varibales selection
 ```{r}
 # Building model
-logistic_full <- glm(Status ~ ., family = binomial, data = data_cleaned)
+logistic_full <- glm(Status ~ (.)^2, family = binomial, data = data_cleaned)
 logistic_null <- glm(Status ~ 1, family = binomial, data = data_cleaned)
 
 # backward selection
@@ -220,8 +220,22 @@ formula(stepwise)
 summary(backward_model)
 summary(forward_model)
 summary(stepwise)
+
+# results
+results <- data.frame(
+Model = c("forward", "backward", "stepwise"),
+AIC = c(AIC(forward_model), AIC(backward_model), AIC(stepwise)), BIC = c(BIC(forward_model), BIC(backward_model), BIC(stepwise))
+) 
+results
 ```
 
+# logistic regression
+```{r}
+logistics <- glm(Status ~ Age + Race + T.Stage + N.Stage + differentiate + Estrogen.Status + 
+    Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + 
+    Survival.Months, family = binomial, data = data_cleaned)
+summary(logistics)
+```
 
 
 
