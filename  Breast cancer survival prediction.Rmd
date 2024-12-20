@@ -25,15 +25,60 @@ data <- read.csv("./data/Project_2_data.csv")
 
 # 1. Descriptive Summary
 ```{r}
-summary_stats <- data |> 
+# summary_stats for numeric predictors
+summary_numeric <- data |> 
   select_if(is.numeric) |>
-  summarise_all(list(mean = ~mean(as.numeric(.), na.rm = TRUE), 
-                     median = ~median(as.numeric(.), na.rm = TRUE), 
-                     count = ~sum(!is.na(.))))
-summary_stats
+  summarise_all(list(
+    mean = ~mean(.x, na.rm = TRUE), 
+    median = ~median(.x, na.rm = TRUE), 
+    sd = ~sd(.x, na.rm = TRUE),
+    min = ~min(.x, na.rm = TRUE),
+    max = ~max(.x, na.rm = TRUE),
+    iqr = ~IQR(.x, na.rm = TRUE),
+    count = ~sum(!is.na(.x))
+  ))
 
-#correlation table
+summary_numeric_long <- summary_numeric |> 
+  pivot_longer(
+    cols = everything(),        
+    names_to = c("Variable", "Statistic"), 
+    names_sep = "_",            
+    values_to = "Value"         
+  )
+summary_numeric_wide <- summary_numeric_long |> 
+  pivot_wider(
+    names_from = Statistic,    
+    values_from = Value         
+  )
+summary_numeric_wide
 
+#summary_stats for categorical predictors
+summary_categorical <- data |> 
+  select_if(is.character) |>   
+  summarise_all(~ {
+    freq_table <- table(.)
+    summary <- paste(
+      paste0(names(freq_table), " (", as.vector(freq_table), " - ", 
+             round(prop.table(freq_table) * 100, 2), "%)"), 
+      collapse = "; "
+    )
+    summary
+  })
+
+summary_categorical_long <- summary_categorical |> 
+  pivot_longer(
+    cols = everything(), 
+    names_to = "Variable",
+    values_to = "Summary"
+  ) |> 
+  unnest(Summary)
+
+summary_categorical_long
+
+# Missing data
+missing_percentage <- data |> 
+  summarise(across(everything(), ~ mean(is.na(.)) * 100, .names = "missing_pct_{.col}"))
+missing_percentage
 ```
 # Clean Data
 
