@@ -193,11 +193,11 @@ cat("Concordance Index:", c_index, "\n")
 
 ```{r logit_diagnostics}
 
-logistic <- glm(Status ~ ., family = binomial, data = data)
+logistic <- glm(Status ~ ., family = binomial, data = data_cleaned)
 # alias_info <- alias(logistic)
 # print(alias_info)
-# logit_vif_values <- vif(logistic)
-# print(logit_vif_values)
+logit_vif_values <- vif(logistic)
+print(logit_vif_values)
 ```
 
 
