@@ -146,16 +146,6 @@ for (i in 1:(nrow(cor_matrix) - 1)) {
     }
   }
 }
-
-#show pairs with moderate correlation
-for (i in 1:(nrow(cor_matrix) - 1)) {
-  for (j in (i + 1):ncol(cor_matrix)) {
-    if (abs(cor_matrix[i, j]) > 0.4 & abs(cor_matrix[i, j]) <0.7) {
-      cat("Pairs with moderate correlation:", rownames(cor_matrix)[i], "~", colnames(cor_matrix)[j], 
-          "with correlation =", cor_matrix[i, j], "\n")
-    }
-  }
-}
 ```
 
 # 3. Model Building: Survival Analysis
@@ -179,26 +169,9 @@ cat("Concordance Index:", c_index, "\n")
 
 # 4. Model Building: Logistic Regression
 
-# Model Diagnostics
-
-```{r logit_diagnostics}
-# Test for linearity
-box_tidwell <- boxTidwell(Status ~ Age + Tumor.Size + Estrogen.Status + Progesterone.Status
-                          + Regional.Node.Examined + Reginol.Node.Positive + 
-                          T.Stage + N.Stage + X6th.Stage + Grade + A.Stage, 
-                          data = data_cleaned)
-print(box_tidwell)
-
-logistic <- glm(Status ~ ., family = binomial, data = data_cleaned)
-
-logit_vif_values <- vif(logistic)
-print(logit_vif_values)
-data_cleaned <- data_cleaned %>% 
-  select(-X6th.Stage, -Reginol.Node.Positive)
-```
 
 
-## Varibales selection
+# Varibales selection
 
 ```{r}
 # Building model
@@ -237,27 +210,75 @@ Estrogen.Status_included_backward = glm(Status ~ Age + Race + T.Stage + N.Stage 
 
 Estrogen.Status_excluded_backward = glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + Survival.Months, family = binomial, data = data_cleaned) 
 
-AIC_Estrogen.Status = AIC(Estrogen.Status_included_backward, Estrogen.Status_excluded_backward) 
-print(AIC_Estrogen.Status)
+result1 <- data.frame(
+Model = c("with Estrogen.StatusPosive", "without Estrogen.StatusPosive"),
+AIC = c(AIC(Estrogen.Status_included_backward), AIC(Estrogen.Status_excluded_backward)), 
+BIC = c(BIC(Estrogen.Status_included_backward), BIC(Estrogen.Status_excluded_backward))
+) 
+result1
 
 #compare AIC with and without N.Stage*Regional.Node.Positive
 Interaction_included_backward = glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + Estrogen.Status + Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + Survival.Months + N.Stage*Reginol.Node.Positive, family = binomial, data = data_cleaned)
 
 Interaction_excluded_backward = glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + Estrogen.Status + Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + Survival.Months, family = binomial, data = data_cleaned)
 
-AIC_interaction = AIC(Interaction_included_backward, Interaction_excluded_backward) 
-print(AIC_interaction)
+result2 <- data.frame(
+Model = c("with N.Stage*Regional.Node.Positive", "without N.Stage*Regional.Node.Positive"),
+AIC = c(AIC(Interaction_included_backward), AIC(Interaction_excluded_backward)), 
+BIC = c(BIC(Interaction_included_backward), BIC(Interaction_excluded_backward))
+) 
+result2
+
+#compare AIC with and without N.Stage
+Nstage_included_backward = glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + Estrogen.Status + Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + Survival.Months, family = binomial, data = data_cleaned)
+
+Nstage_excluded_backward = glm(Status ~ Age + Race + T.Stage + Grade + Estrogen.Status + Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + Survival.Months, family = binomial, data = data_cleaned)
+
+result3 <- data.frame(
+Model = c("with N.Stage", "without N.Stage"),
+AIC = c(AIC(Nstage_included_backward), AIC(Nstage_excluded_backward)), 
+BIC = c(BIC(Nstage_included_backward), BIC(Nstage_excluded_backward))
+) 
+result3
+
+#compare AIC with and without Regional.Node.Positive
+RNP_included_backward = glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + Estrogen.Status + Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + Survival.Months, family = binomial, data = data_cleaned)
+
+RNP_excluded_backward = glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + Estrogen.Status + Progesterone.Status + Regional.Node.Examined + Survival.Months, family = binomial, data = data_cleaned)
+
+result4 <- data.frame(
+Model = c("with Regional.Node.Positive", "without Regional.Node.Positive"),
+AIC = c(AIC(RNP_included_backward), AIC(RNP_excluded_backward)), 
+BIC = c(BIC(RNP_included_backward), BIC(RNP_excluded_backward))
+) 
+result4
 ```
 
 # logistic regression
 ```{r}
 logistics <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + Estrogen.Status + 
-    Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + 
-    Survival.Months, family = binomial, data = data_cleaned)
+    Progesterone.Status + Regional.Node.Examined + Survival.Months, family = binomial, data = data_cleaned)
 summary(logistics)
 ```
 
 
+# Model Diagnostics
+
+```{r logit_diagnostics}
+# Test for linearity
+box_tidwell <- boxTidwell(Status ~ Age + Tumor.Size + Estrogen.Status + Progesterone.Status
+                          + Regional.Node.Examined + Reginol.Node.Positive + 
+                          T.Stage + N.Stage + X6th.Stage + Grade + A.Stage, 
+                          data = data_cleaned)
+print(box_tidwell)
+
+logistic <- glm(Status ~ ., family = binomial, data = data_cleaned)
+
+logit_vif_values <- vif(logistic)
+print(logit_vif_values)
+data_cleaned <- data_cleaned %>% 
+  select(-X6th.Stage, -Reginol.Node.Positive)
+```
 
 # 4. Fairness Analysis
 
