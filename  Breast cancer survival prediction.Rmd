@@ -264,15 +264,31 @@ summary(logistics)
 # Model Diagnostics
 
 ```{r logit_diagnostics}
+test_model <- glm(Status ~ ., family = binomial, data = data_cleaned)
+
 # Test for linearity
-box_tidwell <- boxTidwell(Status ~ Age + Tumor.Size + Estrogen.Status + Progesterone.Status
-                          + Regional.Node.Examined + Reginol.Node.Positive + 
-                          T.Stage + N.Stage + X6th.Stage + Grade + A.Stage, 
-                          data = data_cleaned)
-print(box_tidwell)
+probabilities <- predict(test_model, type = "response")
 
-logistic <- glm(Status ~ ., family = binomial, data = data_cleaned)
+# Select only numeric predictors
+mydata <- data_cleaned %>%
+  dplyr::select(Age, Tumor.Size, Regional.Node.Examined, Reginol.Node.Positive) %>% 
+  mutate(logAge = log(Age)) %>% 
+  dplyr::select(-Age)
+predictors <- colnames(mydata)
+# Bind the logit and tidying the data for plot
+mydata <- mydata %>%
+  mutate(logit = log(probabilities/(1-probabilities))) %>%
+  gather(key = "predictors", value = "predictor.value", -logit)
 
+ggplot(mydata, aes(logit, predictor.value))+
+  geom_point(size = 0.5, alpha = 0.5) +
+  geom_smooth(method = "loess") + 
+  theme_bw() + 
+  facet_wrap(~predictors, scales = "free_y")
+
+plot(test_model, which = 4, id.n = 5)
+summary(test_model)
+# Test for Multicolinearity
 logit_vif_values <- vif(logistic)
 print(logit_vif_values)
 data_cleaned <- data_cleaned %>% 
