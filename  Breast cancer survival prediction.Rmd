@@ -180,8 +180,6 @@ cat("Concordance Index:", c_index, "\n")
 
 # 4. Model Building: Logistic Regression
 
-
-
 # Varibales selection
 
 ```{r}
@@ -265,88 +263,6 @@ BIC = c(BIC(RNP_included_backward), BIC(RNP_excluded_backward))
 result4
 ```
 
-# logistic regression
-```{r}
-logistics <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + 
-    Estrogen.Status + Progesterone.Status + Regional.Node.Examined + 
-    Reginol.Node.Positive + Regional.Node.Examined * 
-    Reginol.Node.Positive, family = binomial, data = data_cleaned)
-summary(logistics)
-
-#without interaction terms
-logistics2 <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + 
-    Estrogen.Status + Progesterone.Status + Regional.Node.Examined, family = binomial, data = data_cleaned)
-```
-
-# Model Diagnostics
-
-```{r logit_diagnostics}
-test_model <- glm(Status ~ ., family = binomial, data = data_cleaned)
-
-# Test for linearity
-probabilities <- predict(test_model, type = "response")
-
-# Select only numeric predictors
-mydata <- data_cleaned %>%
-  dplyr::select(Age, Tumor.Size, Regional.Node.Examined, Reginol.Node.Positive) %>% 
-  mutate(logAge = log(Age)) %>% 
-  dplyr::select(-Age)
-predictors <- colnames(mydata)
-# Bind the logit and tidying the data for plot
-mydata <- mydata %>%
-  mutate(logit = log(probabilities/(1-probabilities))) %>%
-  gather(key = "predictors", value = "predictor.value", -logit)
-
-ggplot(mydata, aes(logit, predictor.value))+
-  geom_point(size = 0.5, alpha = 0.5) +
-  geom_smooth(method = "loess") + 
-  theme_bw() + 
-  facet_wrap(~predictors, scales = "free_y")
-
-plot(test_model, which = 4, id.n = 5)
-summary(test_model)
-# Test for Multicolinearity
-logit_vif_values <- vif(logistic)
-print(logit_vif_values)
-data_cleaned <- data_cleaned %>% 
-  select(-X6th.Stage, -Reginol.Node.Positive)
-```
-
-```{r}
-# independence of errors
-residuals <- residuals(logistics2, type = "pearson")
-plot(residuals, main = "Residual Plot", xlab = "Index", ylab = "Residuals")
-abline(h = 0, col = "red")
-
-# existence of of strongly influential outliers
-std_residuals <- rstandard(logistics2)
-leverage <- hatvalues(logistics2)
-cooks_distance <- cooks.distance(logistics2)
-plot_data <- data.frame(Leverage = leverage, Residuals = std_residuals)
-
-ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
-  geom_point(aes(color = cooks_distance > 4 / nrow(data_cleaned))) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
-  geom_vline(xintercept = 2 * mean(leverage), linetype = "dashed", color = "blue") +
-  labs(
-    title = "Residuals vs Leverage with Cook's Distance",
-    x = "Leverage (Hat Values)",
-    y = "Standardized Residuals (Deviance)"
-  ) +
-  theme_minimal() +
-  scale_color_manual(values = c("black", "purple"), labels = c("Not Influential", "Influential"))
-
-plot(logistics, which = 4, id.n = 3)
-model.data <- augment(logistics) %>% 
-  mutate(index = 1:n()) 
-model.data %>% top_n(3, .cooksd)
-ggplot(model.data, aes(index, .std.resid)) + 
-  geom_point(aes(color = Status), alpha = .5) +
-  theme_bw()
-model.data %>% 
-  filter(abs(.std.resid) > 3)
-```
-
 # try using lasso for model selection
 ```{r}
 predictors <- model.matrix(Status ~ ., data = data_cleaned)[, -1]
@@ -395,19 +311,31 @@ ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
 
 # Likelihood Ratio Test
 ```{r}
+#Regional.Node.Examined * Reginol.Node.Positive!!!!!!!
+interaction_model <- glm(Status ~ Regional.Node.Examined * Reginol.Node.Positive, data = data_cleaned, family = binomial)
+base_model <- glm(Status ~ Regional.Node.Examined + Reginol.Node.Positive, data = data_cleaned, family = binomial)
+lrt <- anova(base_model, interaction_model, test = "LRT")
+print(lrt)
+
+#A.Stage * Reginol.Node.Positive !!!
+interaction_model <- glm(Status ~ A.Stage * Reginol.Node.Positive, data = data_cleaned, family = binomial)
+base_model <- glm(Status ~ A.Stage + Reginol.Node.Positive, data = data_cleaned, family = binomial)
+lrt <- anova(base_model, interaction_model, test = "LRT")
+print(lrt)
+
 #T.Stage * Tumor.Size
 interaction_model <- glm(Status ~ T.Stage * Tumor.Size, data = data_cleaned, family = binomial)
 base_model <- glm(Status ~ T.Stage + Tumor.Size, data = data_cleaned, family = binomial)
 lrt <- anova(base_model, interaction_model, test = "LRT")
 print(lrt)
 
-#N.Stage*X6th.Stage
+#N.Stage * X6th.Stage
 interaction_model <- glm(Status ~ N.Stage*X6th.Stage, data = data_cleaned, family = binomial)
 base_model <- glm(Status ~ N.Stage + X6th.Stage, data = data_cleaned, family = binomial)
 lrt <- anova(base_model, interaction_model, test = "LRT")
 print(lrt)
 
-#N.Stage*Reginol.Node.Positive
+#N.Stage * Reginol.Node.Positive
 interaction_model <- glm(Status ~ N.Stage*Reginol.Node.Positive, data = data_cleaned, family = binomial)
 base_model <- glm(Status ~ N.Stage + Reginol.Node.Positive, data = data_cleaned, family = binomial)
 lrt <- anova(base_model, interaction_model, test = "LRT")
@@ -425,11 +353,6 @@ base_model <- glm(Status ~ T.Stage + X6th.Stage, data = data_cleaned, family = b
 lrt <- anova(base_model, interaction_model, test = "LRT")
 print(lrt)
 
-#Regional.Node.Examined * Reginol.Node.Positive!!!!!!!
-interaction_model <- glm(Status ~ Regional.Node.Examined * Reginol.Node.Positive, data = data_cleaned, family = binomial)
-base_model <- glm(Status ~ Regional.Node.Examined + Reginol.Node.Positive, data = data_cleaned, family = binomial)
-lrt <- anova(base_model, interaction_model, test = "LRT")
-print(lrt)
 
 #T.Stage ~ N.Stage
 interaction_model <- glm(Status ~ T.Stage * N.Stage, data = data_cleaned, family = binomial)
@@ -455,6 +378,75 @@ base_model <- glm(Status ~ X6th.Stage + Regional.Node.Examined, data = data_clea
 lrt <- anova(base_model, interaction_model, test = "LRT")
 print(lrt)
 ```
+
+# logistic regression
+```{r}
+logistics <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + 
+    Estrogen.Status + Progesterone.Status + Regional.Node.Examined + 
+    Reginol.Node.Positive + Regional.Node.Examined * 
+    Reginol.Node.Positive, family = binomial, data = data_cleaned)
+summary(logistics)
+
+#without interaction terms
+logistics2 <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + 
+    Estrogen.Status + Progesterone.Status + Regional.Node.Examined, family = binomial, data = data_cleaned)
+```
+
+# Model Diagnostics
+
+```{r logit_diagnostics}
+# Test for linearity
+box_tidwell <- boxTidwell(Status ~ Age + Tumor.Size + Estrogen.Status + Progesterone.Status
+                          + Regional.Node.Examined + Reginol.Node.Positive + 
+                          T.Stage + N.Stage + X6th.Stage + Grade + A.Stage, 
+                          data = data_cleaned)
+print(box_tidwell)
+
+logistic <- glm(Status ~ ., family = binomial, data = data_cleaned)
+
+logit_vif_values <- vif(logistic)
+print(logit_vif_values)
+data_cleaned <- data_cleaned %>% 
+  select(-X6th.Stage, -Reginol.Node.Positive)
+```
+
+```{r}
+# independence of errors
+residuals <- residuals(logistics2, type = "pearson")
+plot(residuals, main = "Residual Plot", xlab = "Index", ylab = "Residuals")
+abline(h = 0, col = "red")
+
+#linearity assumption
+plot(logistics, which = 4, id.n = 3)
+model.data <- augment(logistics) %>% 
+  mutate(index = 1:n()) 
+model.data %>% top_n(3, .cooksd)
+ggplot(model.data, aes(index, .std.resid)) + 
+  geom_point(aes(color = Status), alpha = .5) +
+  theme_bw()
+model.data %>% 
+  filter(abs(.std.resid) > 3)
+
+# existence of of strongly influential outliers
+std_residuals <- rstandard(logistics2)
+leverage <- hatvalues(logistics2)
+cooks_distance <- cooks.distance(logistics2)
+plot_data <- data.frame(Leverage = leverage, Residuals = std_residuals)
+
+ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
+  geom_point(aes(color = cooks_distance > 4 / nrow(data_cleaned))) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  geom_vline(xintercept = 2 * mean(leverage), linetype = "dashed", color = "blue") +
+  labs(
+    title = "Residuals vs Leverage with Cook's Distance",
+    x = "Leverage (Hat Values)",
+    y = "Standardized Residuals (Deviance)"
+  ) +
+  theme_minimal() +
+  scale_color_manual(values = c("black", "purple"), labels = c("Not Influential", "Influential"))
+```
+
+
 
 # 4. Fairness Analysis
 
