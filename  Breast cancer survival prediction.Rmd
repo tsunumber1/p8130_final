@@ -19,6 +19,7 @@ library(corrplot)
 library(car)
 library(glmnet)
 library(mgcv)
+library(boot)
 ```
 
 ```{r data_cleaning}
@@ -209,8 +210,19 @@ print(cox_zph_strat)
 
 ```{r}
 # Building model
-logistic_full <- glm(Status ~ . + T.Stage*Tumor.Size + N.Stage*X6th.Stage + N.Stage*Reginol.Node.Positive + X6th.Stage*Reginol.Node.Positive, family = binomial, data = data_cleaned)
+logistic_full <- glm(Status ~ . + T.Stage*Tumor.Size + N.Stage*Reginol.Node.Positive, family = binomial, data = data_cleaned)
 logistic_null <- glm(Status ~ 1, family = binomial, data = data_cleaned)
+
+# Bootstrap for Logistic Full Model
+boot_fn <- function(data, indices) {
+  data_boot <- data[indices, ]
+  model <- glm(Status ~ ., family = binomial, data = data_boot)
+  return(coef(model))
+}
+
+set.seed(123)
+boot_results <- boot(data_cleaned, boot_fn, R = 1000)
+print(boot_results)
 
 # backward selection
 backward_model <- step(logistic_full, direction = "backward")
@@ -532,6 +544,7 @@ ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
   ) +
   theme_minimal() +
   scale_color_manual(values = c("black", "purple"), labels = c("Not Influential", "Influential"))
+
 ```
 
 Here we diagnose the logistric regression model by testing its assumption. According to the results, we found non-linear relationship between continuous variables and the log odd of binary outcome in our initial model. There is multicolinearity for `T.Stage`, `N.Stage`, `X6th.Stage`. However, we found that these variables might be highly correlated since they are using similar measuring systems. By removing `X6th.Stage`, the multicolinearity no longer exist. And out initial model pass the test for error independence and influencial outliers.
