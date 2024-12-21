@@ -415,10 +415,30 @@ logistics <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade +
     Reginol.Node.Positive + Regional.Node.Examined * 
     Reginol.Node.Positive, family = binomial, data = data_cleaned)
 summary(logistics)
+```
 
-# without Reginol.Node.Positive adn the interaction terms
-logistics_test1 <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade + 
-    Estrogen.Status + Progesterone.Status + Regional.Node.Examined, family = binomial, data = data_cleaned)
+# cv for glm
+```{r}
+#cv for glm
+data_cleaned$Status <- factor(data_cleaned$Status, levels = c(0, 1))
+control <- trainControl(method = "cv", number = 10)
+logistic_cv_model <- train(
+  Status ~Age + Race + T.Stage + N.Stage + Grade + 
+    Estrogen.Status + Progesterone.Status + Regional.Node.Examined + 
+    Reginol.Node.Positive + Regional.Node.Examined * 
+    Reginol.Node.Positive,
+  data = data_cleaned,
+  method = "glm",
+  family = binomial,
+  trControl = control
+)
+logistic_cv_model
+
+
+```
+
+#GAM
+```{r}
 
 #GAM using predictors from auto procedure
 logistics_gam_auto <- gam(Status ~ s(Age) + Race + T.Stage + N.Stage + Grade + 
@@ -442,6 +462,7 @@ data_cleaned$predicted_probs <- predict(logistics_gam_auto, type = "response")
 
 
 ```
+
 
 ## Model Diagnostics
 
