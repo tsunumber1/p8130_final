@@ -441,25 +441,28 @@ logistic_cv_model
 ```{r}
 
 #GAM using predictors from auto procedure
-logistics_gam_auto <- gam(Status ~ s(Age) + Race + T.Stage + N.Stage + Grade + 
-    Estrogen.Status + Progesterone.Status + s(Regional.Node.Examined) + 
-    s(Reginol.Node.Positive) + te(Regional.Node.Examined * 
-    Reginol.Node.Positive),
+logistics_gam_auto <- gam(Status ~ Age + Race + T.Stage + N.Stage + Grade + 
+    Estrogen.Status + Progesterone.Status + Regional.Node.Examined + 
+    Reginol.Node.Positive + Regional.Node.Examined * 
+    Reginol.Node.Positive,
     data = data_cleaned,
     family = binomial)
-plot(logistics_gam_auto, page = 1, residuals = TRUE)
-gam.check(logistics_gam_auto)
+summary(logistics_gam_auto)
 AIC(logistics_gam_auto, logistics)
-data_cleaned$predicted_probs <- predict(logistics_gam_auto, type = "response")
 
 #Gam using predictors from LASSO
 logistics_gam_lasso <- gam(Status ~ s(Age) + Race + Marital.Status + T.Stage + N.Stage + Grade + s(Tumor.Size) + Estrogen.Status + 
     Progesterone.Status + s(Regional.Node.Examined), data = data_cleaned, family = binomial)
-plot(logistics_gam_auto, page = 1, residuals = TRUE)
-gam.check(logistics_gam_auto)
-AIC(logistics_gam_auto, logistics_test2)
-data_cleaned$predicted_probs <- predict(logistics_gam_auto, type = "response")   
 
+summary(logistics_gam_lasso)
+AIC(logistics_gam_auto, logistics_test2)
+   
+
+
+```
+
+#cv for GAM
+```{r}
 
 ```
 
