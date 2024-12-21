@@ -329,10 +329,6 @@ print(cox_zph)
     ## GLOBAL                 55.54616 17 5.6e-06
 
 ``` r
-# # Alternatively, using ggplot2 for enhanced visualization
-# ggcoxzph(cox_zph)
-
-
 # Fit Cox model with stratification on violating covariates
 cox_model_strat <- coxph(Surv(Survival.Months, Status) ~ Age + Race + Marital.Status + T.Stage + 
                           N.Stage + X6th.Stage + Grade + Tumor.Size + 
@@ -410,6 +406,302 @@ print(cox_zph_strat)
     ## Reginol.Node.Positive   1.552  1 0.21
     ## GLOBAL                 11.635 14 0.64
 
+## Model Selection
+
+``` r
+full_model <- coxph(Surv(Survival.Months, Status) ~ Age + Race + Marital.Status + T.Stage + 
+                     N.Stage + X6th.Stage + Grade + Tumor.Size + 
+                     Regional.Node.Examined + Reginol.Node.Positive + 
+                     strata(A.Stage) + strata(Estrogen.Status) + 
+                     strata(Progesterone.Status), 
+                   data = data_cleaned)
+
+# Define the null model with only stratified variables
+null_model <- coxph(Surv(Survival.Months, Status) ~ strata(A.Stage) + strata(Estrogen.Status) + 
+                     strata(Progesterone.Status), 
+                   data = data_cleaned)
+
+step_backward <- MASS::stepAIC(full_model, 
+                          scope = list(lower = null_model, upper = full_model), 
+                          direction = "backward")
+```
+
+    ## Start:  AIC=8004.79
+    ## Surv(Survival.Months, Status) ~ Age + Race + Marital.Status + 
+    ##     T.Stage + N.Stage + X6th.Stage + Grade + Tumor.Size + Regional.Node.Examined + 
+    ##     Reginol.Node.Positive + strata(A.Stage) + strata(Estrogen.Status) + 
+    ##     strata(Progesterone.Status)
+    ## 
+    ##                          Df    AIC
+    ## - X6th.Stage              1 8002.8
+    ## - Tumor.Size              1 8002.9
+    ## - Marital.Status          4 8003.9
+    ## <none>                      8004.8
+    ## - N.Stage                 1 8007.7
+    ## - T.Stage                 1 8012.0
+    ## - Race                    2 8014.3
+    ## - Age                     1 8020.4
+    ## - Reginol.Node.Positive   1 8022.6
+    ## - Regional.Node.Examined  1 8028.7
+    ## - Grade                   1 8036.1
+    ## 
+    ## Step:  AIC=8002.8
+    ## Surv(Survival.Months, Status) ~ Age + Race + Marital.Status + 
+    ##     T.Stage + N.Stage + Grade + Tumor.Size + Regional.Node.Examined + 
+    ##     Reginol.Node.Positive + strata(A.Stage) + strata(Estrogen.Status) + 
+    ##     strata(Progesterone.Status)
+    ## 
+    ##                          Df    AIC
+    ## - Tumor.Size              1 8000.9
+    ## - Marital.Status          4 8001.9
+    ## <none>                      8002.8
+    ## - Race                    2 8012.3
+    ## - T.Stage                 1 8013.7
+    ## - N.Stage                 1 8018.3
+    ## - Age                     1 8018.4
+    ## - Reginol.Node.Positive   1 8021.3
+    ## - Regional.Node.Examined  1 8026.7
+    ## - Grade                   1 8034.3
+    ## 
+    ## Step:  AIC=8000.9
+    ## Surv(Survival.Months, Status) ~ Age + Race + Marital.Status + 
+    ##     T.Stage + N.Stage + Grade + Regional.Node.Examined + Reginol.Node.Positive + 
+    ##     strata(A.Stage) + strata(Estrogen.Status) + strata(Progesterone.Status)
+    ## 
+    ##                          Df    AIC
+    ## - Marital.Status          4 8000.0
+    ## <none>                      8000.9
+    ## - Race                    2 8010.4
+    ## - N.Stage                 1 8016.3
+    ## - Age                     1 8016.8
+    ## - Reginol.Node.Positive   1 8019.3
+    ## - Regional.Node.Examined  1 8024.7
+    ## - T.Stage                 1 8026.2
+    ## - Grade                   1 8032.3
+    ## 
+    ## Step:  AIC=7999.98
+    ## Surv(Survival.Months, Status) ~ Age + Race + T.Stage + N.Stage + 
+    ##     Grade + Regional.Node.Examined + Reginol.Node.Positive + 
+    ##     strata(A.Stage) + strata(Estrogen.Status) + strata(Progesterone.Status)
+    ## 
+    ##                          Df    AIC
+    ## <none>                      8000.0
+    ## - Race                    2 8013.2
+    ## - N.Stage                 1 8014.0
+    ## - Age                     1 8017.9
+    ## - Reginol.Node.Positive   1 8021.7
+    ## - Regional.Node.Examined  1 8024.4
+    ## - T.Stage                 1 8026.4
+    ## - Grade                   1 8031.7
+
+``` r
+summary(step_backward)
+```
+
+    ## Call:
+    ## coxph(formula = Surv(Survival.Months, Status) ~ Age + Race + 
+    ##     T.Stage + N.Stage + Grade + Regional.Node.Examined + Reginol.Node.Positive + 
+    ##     strata(A.Stage) + strata(Estrogen.Status) + strata(Progesterone.Status), 
+    ##     data = data_cleaned)
+    ## 
+    ##   n= 4024, number of events= 616 
+    ## 
+    ##                             coef exp(coef)  se(coef)      z Pr(>|z|)    
+    ## Age                     0.020810  1.021028  0.004698  4.430 9.44e-06 ***
+    ## RaceOther              -0.819601  0.440607  0.210778 -3.888 0.000101 ***
+    ## RaceWhite              -0.433636  0.648148  0.126446 -3.429 0.000605 ***
+    ## T.Stage                 0.275592  1.317310  0.050929  5.411 6.26e-08 ***
+    ## N.Stage                 0.336053  1.399414  0.084515  3.976 7.00e-05 ***
+    ## Grade                   0.396106  1.486027  0.068656  5.769 7.95e-09 ***
+    ## Regional.Node.Examined -0.031896  0.968608  0.006438 -4.954 7.26e-07 ***
+    ## Reginol.Node.Positive   0.054577  1.056093  0.010752  5.076 3.85e-07 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ##                        exp(coef) exp(-coef) lower .95 upper .95
+    ## Age                       1.0210     0.9794    1.0117    1.0305
+    ## RaceOther                 0.4406     2.2696    0.2915    0.6660
+    ## RaceWhite                 0.6481     1.5429    0.5059    0.8304
+    ## T.Stage                   1.3173     0.7591    1.1922    1.4556
+    ## N.Stage                   1.3994     0.7146    1.1858    1.6515
+    ## Grade                     1.4860     0.6729    1.2989    1.7001
+    ## Regional.Node.Examined    0.9686     1.0324    0.9565    0.9809
+    ## Reginol.Node.Positive     1.0561     0.9469    1.0341    1.0786
+    ## 
+    ## Concordance= 0.7  (se = 0.014 )
+    ## Likelihood ratio test= 302.4  on 8 df,   p=<2e-16
+    ## Wald test            = 327.8  on 8 df,   p=<2e-16
+    ## Score (logrank) test = 351.3  on 8 df,   p=<2e-16
+
+Here we use step forward selection with AIC to obtain an insight on
+effective predictor, and `Marital.Status` and `X6th.Stage` are removed
+according to the summary. Then we perform LASSO regularization to find
+most influential predictors in our Cox PH model.
+
+``` r
+# Define stratified variables
+strata_vars <- c("A.Stage", "Estrogen.Status", "Progesterone.Status")
+
+# Create predictor matrix excluding stratified variables
+x <- model.matrix(~ Age + Race + T.Stage + 
+                   N.Stage + Grade + Tumor.Size + 
+                   Regional.Node.Examined + Reginol.Node.Positive, 
+                 data = data_cleaned)[, -1]  # Remove intercept
+
+# Define the response variable
+y <- Surv(time = data_cleaned$Survival.Months, event = data_cleaned$Status)
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Fit LASSO Cox model with cross-validation
+lasso_cox <- cv.glmnet(x, y, family = "cox", alpha = 1, 
+                       nfolds = 10, 
+                       standardize = TRUE)
+
+# Plot cross-validated partial likelihood deviance
+plot(lasso_cox)
+title("LASSO Cox Model Cross-Validation", line = 2.5)
+```
+
+![](./-Breast-cancer-survival-prediction_files/figure-gfm/coxPH_model_selection_lasso-1.png)<!-- -->
+
+``` r
+# Optimal lambda values
+optimal_lambda_min <- lasso_cox$lambda.min
+
+# Extract coefficients at lambda.min
+coef_min <- coef(lasso_cox, s = "lambda.min")
+selected_vars_min <- rownames(coef_min)[which(coef_min != 0)]
+selected_vars_min <- selected_vars_min[selected_vars_min != "(Intercept)"]  # Remove intercept
+
+print("Selected Variables at lambda.min:")
+```
+
+    ## [1] "Selected Variables at lambda.min:"
+
+``` r
+print(selected_vars_min)
+```
+
+    ## [1] "Age"                    "RaceOther"              "RaceWhite"             
+    ## [4] "T.Stage"                "N.Stage"                "Grade"                 
+    ## [7] "Regional.Node.Examined" "Reginol.Node.Positive"
+
+``` r
+# Fit the final Cox model
+final_cox_lasso <- coxph(Surv(Survival.Months, Status) ~ Age + Race + T.Stage + N.Stage
+                         + Grade + Regional.Node.Examined + Reginol.Node.Positive + strata(A.Stage) + 
+                           strata(Estrogen.Status) + strata(Progesterone.Status), data = data_cleaned)
+summary(final_cox_lasso)
+```
+
+    ## Call:
+    ## coxph(formula = Surv(Survival.Months, Status) ~ Age + Race + 
+    ##     T.Stage + N.Stage + Grade + Regional.Node.Examined + Reginol.Node.Positive + 
+    ##     strata(A.Stage) + strata(Estrogen.Status) + strata(Progesterone.Status), 
+    ##     data = data_cleaned)
+    ## 
+    ##   n= 4024, number of events= 616 
+    ## 
+    ##                             coef exp(coef)  se(coef)      z Pr(>|z|)    
+    ## Age                     0.020810  1.021028  0.004698  4.430 9.44e-06 ***
+    ## RaceOther              -0.819601  0.440607  0.210778 -3.888 0.000101 ***
+    ## RaceWhite              -0.433636  0.648148  0.126446 -3.429 0.000605 ***
+    ## T.Stage                 0.275592  1.317310  0.050929  5.411 6.26e-08 ***
+    ## N.Stage                 0.336053  1.399414  0.084515  3.976 7.00e-05 ***
+    ## Grade                   0.396106  1.486027  0.068656  5.769 7.95e-09 ***
+    ## Regional.Node.Examined -0.031896  0.968608  0.006438 -4.954 7.26e-07 ***
+    ## Reginol.Node.Positive   0.054577  1.056093  0.010752  5.076 3.85e-07 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ##                        exp(coef) exp(-coef) lower .95 upper .95
+    ## Age                       1.0210     0.9794    1.0117    1.0305
+    ## RaceOther                 0.4406     2.2696    0.2915    0.6660
+    ## RaceWhite                 0.6481     1.5429    0.5059    0.8304
+    ## T.Stage                   1.3173     0.7591    1.1922    1.4556
+    ## N.Stage                   1.3994     0.7146    1.1858    1.6515
+    ## Grade                     1.4860     0.6729    1.2989    1.7001
+    ## Regional.Node.Examined    0.9686     1.0324    0.9565    0.9809
+    ## Reginol.Node.Positive     1.0561     0.9469    1.0341    1.0786
+    ## 
+    ## Concordance= 0.7  (se = 0.014 )
+    ## Likelihood ratio test= 302.4  on 8 df,   p=<2e-16
+    ## Wald test            = 327.8  on 8 df,   p=<2e-16
+    ## Score (logrank) test = 351.3  on 8 df,   p=<2e-16
+
+``` r
+library(timeROC)
+library(rms)
+```
+
+    ## Loading required package: Hmisc
+
+    ## 
+    ## Attaching package: 'Hmisc'
+
+    ## The following objects are masked from 'package:dplyr':
+    ## 
+    ##     src, summarize
+
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     format.pval, units
+
+    ## 
+    ## Attaching package: 'rms'
+
+    ## The following objects are masked from 'package:car':
+    ## 
+    ##     Predict, vif
+
+``` r
+# Combine stratified variables into a single strata identifier
+data_cleaned <- data_cleaned %>%
+  mutate(Combined_Strata = paste(A.Stage, Estrogen.Status, Progesterone.Status, sep = "_"))
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Create 5 stratified folds
+folds <- createFolds(data_cleaned$Combined_Strata, k = 5, list = TRUE, returnTrain = FALSE)
+
+# Initialize vector to store C-Index for each fold
+c_indices <- c()
+
+# Loop through each fold
+for(i in 1:length(folds)) {
+  # Define training and validation indices
+  val_indices <- folds[[i]]
+  train_indices <- setdiff(1:nrow(data_cleaned), val_indices)
+  
+  # Split the data
+  train_data <- data_cleaned[train_indices, ]
+  val_data <- data_cleaned[val_indices, ]
+  
+  # Fit the Cox model on training data
+  cox_model_cv <- coxph(Surv(Survival.Months, Status) ~ Age  + Race + T.Stage + N.Stage
+                        + Grade + Reginol.Node.Positive + Regional.Node.Examined +
+                          strata(A.Stage) + strata(Estrogen.Status) + 
+                          strata(Progesterone.Status), 
+                        data = train_data)
+  
+  # Predict risk scores on validation data
+  risk_scores <- predict(cox_model_cv, newdata = val_data, type = "risk")
+  
+  # Calculate C-Index for validation set
+  concordance_val <- survConcordance(Surv(val_data$Survival.Months, val_data$Status) ~ risk_scores)
+  c_indices <- c(c_indices, concordance_val$concordance)
+}
+
+# Calculate average C-Index across folds
+average_c_index <- mean(c_indices)
+print(paste("Average C-Index across 5 folds:", round(average_c_index, 3)))
+```
+
+    ## [1] "Average C-Index across 5 folds: 0.674"
+
 # 4. Model Building: Logistic Regression
 
 ## Varibales selection
@@ -417,190 +709,83 @@ print(cox_zph_strat)
 ``` r
 # Building model
 logistic_full <- glm(Status ~ . + T.Stage*Tumor.Size + N.Stage*Reginol.Node.Positive, family = binomial, data = data_cleaned)
-logistic_null <- glm(Status ~ 1, family = binomial, data = data_cleaned)
-
-# Bootstrap for Logistic Full Model
-boot_fn <- function(data, indices) {
-  data_boot <- data[indices, ]
-  model <- glm(Status ~ ., family = binomial, data = data_boot)
-  return(coef(model))
-}
-
-set.seed(123)
-boot_results <- boot(data_cleaned, boot_fn, R = 1000)
-print(boot_results)
 ```
 
-    ## 
-    ## ORDINARY NONPARAMETRIC BOOTSTRAP
-    ## 
-    ## 
-    ## Call:
-    ## boot(data = data_cleaned, statistic = boot_fn, R = 1000)
-    ## 
-    ## 
-    ## Bootstrap Statistics :
-    ##          original        bias    std. error
-    ## t1*  -0.259066449 -0.0227561038 0.699388362
-    ## t2*   0.028075230  0.0004690450 0.006883036
-    ## t3*  -0.901437769  0.0028532134 0.309933785
-    ## t4*  -0.451197887  0.0101063001 0.175442128
-    ## t5*  -0.164186058  0.0016872655 0.177191245
-    ## t6*   0.492752378 -0.0277453624 0.574478560
-    ## t7*  -0.089658048 -0.0012152272 0.213382784
-    ## t8*   0.025760972  0.0088698189 0.264622751
-    ## t9*   0.515058360  0.0048517373 0.151837474
-    ## t10*  0.449343261 -0.0076262876 0.207672753
-    ## t11* -0.104976069  0.0033060705 0.138856498
-    ## t12*  0.499042094  0.0075432259 0.097524059
-    ## t13* -0.139475584 -0.0098305139 0.306651939
-    ## t14* -0.005517452 -0.0001860039 0.004011227
-    ## t15* -0.400592712 -0.0079133814 0.210107129
-    ## t16* -0.501816924  0.0042759038 0.149878995
-    ## t17* -0.030913004 -0.0003498618 0.008132438
-    ## t18*  0.075223432  0.0014949438 0.017196375
-    ## t19* -0.061397624 -0.0005325745 0.003074691
+    ## Warning: glm.fit: algorithm did not converge
 
 ``` r
+logistic_null <- glm(Status ~ 1, family = binomial, data = data_cleaned)
+
 # backward selection
 backward_model <- step(logistic_full, direction = "backward")
 ```
 
-    ## Start:  AIC=2279.16
+    ## Start:  AIC=2288.45
     ## Status ~ Age + Race + Marital.Status + T.Stage + N.Stage + X6th.Stage + 
     ##     Grade + A.Stage + Tumor.Size + Estrogen.Status + Progesterone.Status + 
     ##     Regional.Node.Examined + Reginol.Node.Positive + Survival.Months + 
-    ##     T.Stage * Tumor.Size + N.Stage * Reginol.Node.Positive
+    ##     Combined_Strata + T.Stage * Tumor.Size + N.Stage * Reginol.Node.Positive
+
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+
     ## 
-    ##                                 Df Deviance    AIC
-    ## - Marital.Status                 4   2240.3 2274.3
-    ## - T.Stage:Tumor.Size             1   2237.2 2277.2
-    ## - A.Stage                        1   2237.3 2277.3
-    ## - X6th.Stage                     1   2237.5 2277.5
-    ## - N.Stage:Reginol.Node.Positive  1   2237.9 2277.9
-    ## <none>                               2237.2 2279.2
-    ## - Estrogen.Status                1   2240.3 2280.3
-    ## - Race                           2   2247.3 2285.3
-    ## - Progesterone.Status            1   2247.8 2287.8
-    ## - Regional.Node.Examined         1   2253.1 2293.1
-    ## - Age                            1   2256.2 2296.2
-    ## - Grade                          1   2266.4 2306.4
-    ## - Survival.Months                1   2956.1 2996.1
-    ## 
-    ## Step:  AIC=2274.32
-    ## Status ~ Age + Race + T.Stage + N.Stage + X6th.Stage + Grade + 
-    ##     A.Stage + Tumor.Size + Estrogen.Status + Progesterone.Status + 
-    ##     Regional.Node.Examined + Reginol.Node.Positive + Survival.Months + 
+    ## Step:  AIC=2288.24
+    ## Status ~ Age + Race + Marital.Status + T.Stage + N.Stage + X6th.Stage + 
+    ##     Grade + A.Stage + Tumor.Size + Estrogen.Status + Regional.Node.Examined + 
+    ##     Reginol.Node.Positive + Survival.Months + Combined_Strata + 
     ##     T.Stage:Tumor.Size + N.Stage:Reginol.Node.Positive
-    ## 
+
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+
     ##                                 Df Deviance    AIC
-    ## - T.Stage:Tumor.Size             1   2240.3 2272.3
-    ## - A.Stage                        1   2240.5 2272.5
-    ## - X6th.Stage                     1   2240.6 2272.6
-    ## - N.Stage:Reginol.Node.Positive  1   2241.0 2273.0
-    ## <none>                               2240.3 2274.3
-    ## - Estrogen.Status                1   2243.5 2275.5
-    ## - Race                           2   2251.7 2281.7
-    ## - Progesterone.Status            1   2251.5 2283.5
-    ## - Regional.Node.Examined         1   2256.2 2288.2
-    ## - Age                            1   2261.6 2293.6
-    ## - Grade                          1   2269.4 2301.4
-    ## - Survival.Months                1   2964.2 2996.2
+    ## - Marital.Status                 5   2239.5 2281.5
+    ## - Estrogen.Status                1   2236.2 2286.2
+    ## - A.Stage                        1   2236.2 2286.2
+    ## - T.Stage:Tumor.Size             1   2236.5 2286.5
+    ## - X6th.Stage                     1   2236.8 2286.8
+    ## - N.Stage:Reginol.Node.Positive  1   2237.3 2287.3
+    ## - Combined_Strata                6   2247.8 2287.8
+    ## <none>                               2236.2 2288.2
+    ## - Race                           2   2246.6 2294.6
+    ## - Regional.Node.Examined         1   2252.2 2302.2
+    ## - Age                            1   2255.2 2305.2
+    ## - Grade                          1   2265.1 2315.1
+    ## - Survival.Months                2   2949.8 2997.8
     ## 
-    ## Step:  AIC=2272.32
+    ## Step:  AIC=2281.46
     ## Status ~ Age + Race + T.Stage + N.Stage + X6th.Stage + Grade + 
-    ##     A.Stage + Tumor.Size + Estrogen.Status + Progesterone.Status + 
-    ##     Regional.Node.Examined + Reginol.Node.Positive + Survival.Months + 
-    ##     N.Stage:Reginol.Node.Positive
+    ##     A.Stage + Tumor.Size + Estrogen.Status + Regional.Node.Examined + 
+    ##     Reginol.Node.Positive + Survival.Months + Combined_Strata + 
+    ##     T.Stage:Tumor.Size + N.Stage:Reginol.Node.Positive
+
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+    ## Warning: glm.fit: algorithm did not converge
+
     ## 
-    ##                                 Df Deviance    AIC
-    ## - A.Stage                        1   2240.5 2270.5
-    ## - X6th.Stage                     1   2240.6 2270.6
-    ## - N.Stage:Reginol.Node.Positive  1   2241.0 2271.0
-    ## - Tumor.Size                     1   2242.1 2272.1
-    ## <none>                               2240.3 2272.3
-    ## - Estrogen.Status                1   2243.5 2273.5
-    ## - Race                           2   2251.7 2279.7
-    ## - Progesterone.Status            1   2251.5 2281.5
-    ## - T.Stage                        1   2251.5 2281.5
-    ## - Regional.Node.Examined         1   2256.3 2286.3
-    ## - Age                            1   2261.6 2291.6
-    ## - Grade                          1   2269.5 2299.5
-    ## - Survival.Months                1   2965.9 2995.9
-    ## 
-    ## Step:  AIC=2270.48
+    ## Step:  AIC=2282.93
     ## Status ~ Age + Race + T.Stage + N.Stage + X6th.Stage + Grade + 
-    ##     Tumor.Size + Estrogen.Status + Progesterone.Status + Regional.Node.Examined + 
-    ##     Reginol.Node.Positive + Survival.Months + N.Stage:Reginol.Node.Positive
-    ## 
-    ##                                 Df Deviance    AIC
-    ## - X6th.Stage                     1   2240.8 2268.8
-    ## - N.Stage:Reginol.Node.Positive  1   2241.2 2269.2
-    ## - Tumor.Size                     1   2242.2 2270.2
-    ## <none>                               2240.5 2270.5
-    ## - Estrogen.Status                1   2243.6 2271.6
-    ## - Race                           2   2251.9 2277.9
-    ## - T.Stage                        1   2251.5 2279.5
-    ## - Progesterone.Status            1   2251.7 2279.7
-    ## - Regional.Node.Examined         1   2256.3 2284.3
-    ## - Age                            1   2262.0 2290.0
-    ## - Grade                          1   2269.9 2297.9
-    ## - Survival.Months                1   2965.9 2993.9
-    ## 
-    ## Step:  AIC=2268.83
-    ## Status ~ Age + Race + T.Stage + N.Stage + Grade + Tumor.Size + 
-    ##     Estrogen.Status + Progesterone.Status + Regional.Node.Examined + 
-    ##     Reginol.Node.Positive + Survival.Months + N.Stage:Reginol.Node.Positive
-    ## 
-    ##                                 Df Deviance    AIC
-    ## - N.Stage:Reginol.Node.Positive  1   2241.8 2267.8
-    ## - Tumor.Size                     1   2242.4 2268.4
-    ## <none>                               2240.8 2268.8
-    ## - Estrogen.Status                1   2243.9 2269.9
-    ## - Race                           2   2252.4 2276.4
-    ## - Progesterone.Status            1   2251.9 2277.9
-    ## - T.Stage                        1   2255.3 2281.3
-    ## - Regional.Node.Examined         1   2256.7 2282.7
-    ## - Age                            1   2262.2 2288.2
-    ## - Grade                          1   2270.1 2296.1
-    ## - Survival.Months                1   2966.0 2992.0
-    ## 
-    ## Step:  AIC=2267.77
-    ## Status ~ Age + Race + T.Stage + N.Stage + Grade + Tumor.Size + 
-    ##     Estrogen.Status + Progesterone.Status + Regional.Node.Examined + 
-    ##     Reginol.Node.Positive + Survival.Months
-    ## 
-    ##                          Df Deviance    AIC
-    ## - Tumor.Size              1   2243.2 2267.2
-    ## <none>                        2241.8 2267.8
-    ## - Estrogen.Status         1   2244.8 2268.8
-    ## - N.Stage                 1   2247.9 2271.9
-    ## - Race                    2   2253.4 2275.4
-    ## - Progesterone.Status     1   2252.8 2276.8
-    ## - T.Stage                 1   2256.8 2280.8
-    ## - Regional.Node.Examined  1   2257.4 2281.4
-    ## - Reginol.Node.Positive   1   2260.8 2284.8
-    ## - Age                     1   2263.1 2287.1
-    ## - Grade                   1   2271.2 2295.2
-    ## - Survival.Months         1   2966.7 2990.7
-    ## 
-    ## Step:  AIC=2267.23
-    ## Status ~ Age + Race + T.Stage + N.Stage + Grade + Estrogen.Status + 
-    ##     Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + 
-    ##     Survival.Months
-    ## 
-    ##                          Df Deviance    AIC
-    ## <none>                        2243.2 2267.2
-    ## - Estrogen.Status         1   2246.2 2268.2
-    ## - N.Stage                 1   2248.9 2270.9
-    ## - Race                    2   2254.7 2274.7
-    ## - Progesterone.Status     1   2254.2 2276.2
-    ## - Regional.Node.Examined  1   2258.8 2280.8
-    ## - Reginol.Node.Positive   1   2262.3 2284.3
-    ## - T.Stage                 1   2264.6 2286.6
-    ## - Age                     1   2265.2 2287.2
-    ## - Grade                   1   2273.0 2295.0
-    ## - Survival.Months         1   2967.1 2989.1
+    ##     A.Stage + Tumor.Size + Estrogen.Status + Regional.Node.Examined + 
+    ##     Reginol.Node.Positive + Survival.Months + Combined_Strata + 
+    ##     T.Stage:Tumor.Size
 
 ``` r
 # forward selection
@@ -623,9 +808,10 @@ stepwise <- step(logistic_null, scope = list(lower = logistic_full, upper = logi
 formula(backward_model)
 ```
 
-    ## Status ~ Age + Race + T.Stage + N.Stage + Grade + Estrogen.Status + 
-    ##     Progesterone.Status + Regional.Node.Examined + Reginol.Node.Positive + 
-    ##     Survival.Months
+    ## Status ~ Age + Race + T.Stage + N.Stage + X6th.Stage + Grade + 
+    ##     A.Stage + Tumor.Size + Estrogen.Status + Regional.Node.Examined + 
+    ##     Reginol.Node.Positive + Survival.Months + Combined_Strata + 
+    ##     T.Stage:Tumor.Size
 
 ``` r
 formula(forward_model)
@@ -646,35 +832,45 @@ summary(backward_model)
 
     ## 
     ## Call:
-    ## glm(formula = Status ~ Age + Race + T.Stage + N.Stage + Grade + 
-    ##     Estrogen.Status + Progesterone.Status + Regional.Node.Examined + 
-    ##     Reginol.Node.Positive + Survival.Months, family = binomial, 
-    ##     data = data_cleaned)
+    ## glm(formula = Status ~ Age + Race + T.Stage + N.Stage + X6th.Stage + 
+    ##     Grade + A.Stage + Tumor.Size + Estrogen.Status + Regional.Node.Examined + 
+    ##     Reginol.Node.Positive + Survival.Months + Combined_Strata + 
+    ##     T.Stage:Tumor.Size, family = binomial, data = data_cleaned)
     ## 
-    ## Coefficients:
-    ##                              Estimate Std. Error z value Pr(>|z|)    
-    ## (Intercept)                 -0.422654   0.537693  -0.786 0.431838    
-    ## Age                          0.029137   0.006287   4.634 3.58e-06 ***
-    ## RaceOther                   -0.937676   0.286598  -3.272 0.001069 ** 
-    ## RaceWhite                   -0.474423   0.185175  -2.562 0.010406 *  
-    ## T.Stage                      0.332547   0.071744   4.635 3.57e-06 ***
-    ## N.Stage                      0.297392   0.124393   2.391 0.016814 *  
-    ## Grade                        0.500656   0.092751   5.398 6.74e-08 ***
-    ## Estrogen.StatusPositive     -0.389678   0.224930  -1.732 0.083196 .  
-    ## Progesterone.StatusPositive -0.509437   0.151281  -3.367 0.000759 ***
-    ## Regional.Node.Examined      -0.030766   0.007996  -3.848 0.000119 ***
-    ## Reginol.Node.Positive        0.073295   0.016811   4.360 1.30e-05 ***
-    ## Survival.Months             -0.061348   0.002743 -22.364  < 2e-16 ***
+    ## Coefficients: (1 not defined because of singularities)
+    ##                                      Estimate Std. Error z value Pr(>|z|)    
+    ## (Intercept)                        -4.557e+13  7.648e+13  -0.596  0.55133    
+    ## Age                                 2.913e-02  6.281e-03   4.637 3.53e-06 ***
+    ## RaceOther                          -9.445e-01  2.853e-01  -3.311  0.00093 ***
+    ## RaceWhite                          -4.794e-01  1.839e-01  -2.606  0.00915 ** 
+    ## T.Stage                             5.173e-01  1.711e-01   3.023  0.00250 ** 
+    ## N.Stage                             4.342e-01  2.222e-01   1.954  0.05066 .  
+    ## X6th.Stage                         -9.827e-02  1.446e-01  -0.680  0.49675    
+    ## Grade                               4.928e-01  9.231e-02   5.338 9.40e-08 ***
+    ## A.Stage                             4.557e+13  7.648e+13   0.596  0.55133    
+    ## Tumor.Size                         -3.933e-03  1.139e-02  -0.345  0.72992    
+    ## Estrogen.StatusPositive            -4.557e+13  7.648e+13  -0.596  0.55133    
+    ## Regional.Node.Examined             -3.104e-02  7.928e-03  -3.916 9.01e-05 ***
+    ## Reginol.Node.Positive               7.666e-02  1.725e-02   4.444 8.84e-06 ***
+    ## Survival.Months                    -6.143e-02  2.738e-03 -22.434  < 2e-16 ***
+    ## Combined_Strata1_Negative_Positive -5.113e-01  6.515e-01  -0.785  0.43257    
+    ## Combined_Strata1_Positive_Negative  4.557e+13  7.648e+13   0.596  0.55133    
+    ## Combined_Strata1_Positive_Positive  4.557e+13  7.648e+13   0.596  0.55133    
+    ## Combined_Strata2_Negative_Negative -4.557e+13  7.648e+13  -0.596  0.55133    
+    ## Combined_Strata2_Negative_Positive -4.557e+13  7.648e+13  -0.596  0.55133    
+    ## Combined_Strata2_Positive_Negative  9.864e-01  8.943e-01   1.103  0.27004    
+    ## Combined_Strata2_Positive_Positive         NA         NA      NA       NA    
+    ## T.Stage:Tumor.Size                 -4.629e-04  3.681e-03  -0.126  0.89993    
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
     ## (Dispersion parameter for binomial family taken to be 1)
     ## 
     ##     Null deviance: 3444.7  on 4023  degrees of freedom
-    ## Residual deviance: 2243.2  on 4012  degrees of freedom
-    ## AIC: 2267.2
+    ## Residual deviance: 2240.9  on 4003  degrees of freedom
+    ## AIC: 2282.9
     ## 
-    ## Number of Fisher Scoring iterations: 6
+    ## Number of Fisher Scoring iterations: 25
 
 ``` r
 summary(forward_model)
@@ -732,7 +928,7 @@ results
 
     ##      Model      AIC      BIC
     ## 1  forward 3446.683 3452.983
-    ## 2 backward 2267.233 2342.833
+    ## 2 backward 2282.933 2415.234
     ## 3 stepwise 3446.683 3452.983
 
 ``` r
@@ -824,7 +1020,7 @@ best_lambda <- lasso_model$lambda.min
 best_lambda
 ```
 
-    ## [1] 0.0006459749
+    ## [1] 0.002376141
 
 ``` r
 # select variables
@@ -836,10 +1032,14 @@ selected_predictors <- unique(gsub("(.*)\\..*", "\\1", selected_dummies))
 selected_predictors
 ```
 
-    ##  [1] "Age"           "RaceOther"     "RaceWhite"     "Marital"      
-    ##  [5] "T"             "N"             "Grade"         "A"            
-    ##  [9] "Tumor"         "Estrogen"      "Progesterone"  "Regional.Node"
-    ## [13] "Reginol.Node"  "Survival"
+    ##  [1] "Age"                                "RaceOther"                         
+    ##  [3] "RaceWhite"                          "Marital"                           
+    ##  [5] "T"                                  "N"                                 
+    ##  [7] "Grade"                              "Estrogen"                          
+    ##  [9] "Progesterone"                       "Regional.Node"                     
+    ## [11] "Reginol.Node"                       "Survival"                          
+    ## [13] "Combined_Strata2_Negative_Negative" "Combined_Strata2_Positive_Negative"
+    ## [15] "Combined_Strata2_Positive_Positive"
 
 ``` r
 #logistics regression
@@ -1147,6 +1347,11 @@ summary(logistics)
     ## 
     ## Number of Fisher Scoring iterations: 5
 
+``` r
+predicted_probabilities <- predict(logistics, newdata = data_cleaned, type = "response")
+data$predicted_status <- ifelse(predicted_probabilities > 0.5, "Alive", "Dead")
+```
+
 # cv for glm
 
 ``` r
@@ -1174,11 +1379,11 @@ logistic_cv_model
     ## 
     ## No pre-processing
     ## Resampling: Cross-Validated (10 fold) 
-    ## Summary of sample sizes: 3621, 3621, 3621, 3622, 3622, 3622, ... 
+    ## Summary of sample sizes: 3622, 3622, 3621, 3621, 3622, 3622, ... 
     ## Resampling results:
     ## 
-    ##   Accuracy   Kappa   
-    ##   0.8571131  0.196932
+    ##   Accuracy  Kappa    
+    ##   0.857604  0.1991905
 
 \#GAM
 
@@ -1304,7 +1509,11 @@ AIC(logistics_gam_auto, logistics_test2)
 ``` r
 # Test for linearity
 test_logit_model <- glm(Status ~ ., family = binomial, data = data_cleaned)
+```
 
+    ## Warning: glm.fit: algorithm did not converge
+
+``` r
 probabilities <- predict(test_logit_model, type = "response")
 mydata <- data_cleaned %>%
   dplyr::select(Age, Tumor.Size, Regional.Node.Examined, Reginol.Node.Positive)
@@ -1331,44 +1540,70 @@ logit_vif_values <- vif(test_logit_model)
 print(logit_vif_values)
 ```
 
-    ##                             GVIF Df GVIF^(1/(2*Df))
-    ## Age                     1.113643  1        1.055293
-    ## Race                    1.077098  2        1.018741
-    ## Marital.Status          1.134254  4        1.015872
-    ## T.Stage                 4.433297  1        2.105540
-    ## N.Stage                10.002709  1        3.162706
-    ## X6th.Stage             12.521419  1        3.538562
-    ## Grade                   1.097033  1        1.047393
-    ## A.Stage                 1.116575  1        1.056681
-    ## Tumor.Size              2.701953  1        1.643762
-    ## Estrogen.Status         1.409987  1        1.187429
-    ## Progesterone.Status     1.373098  1        1.171793
-    ## Regional.Node.Examined  1.422387  1        1.192639
-    ## Reginol.Node.Positive   3.749656  1        1.936403
-    ## Survival.Months         1.035249  1        1.017472
+    ##                                Age                          RaceOther 
+    ##                                 NA                                 NA 
+    ##                          RaceWhite              Marital.StatusMarried 
+    ##                                 NA                                 NA 
+    ##            Marital.StatusSeparated               Marital.StatusSingle 
+    ##                                 NA                                 NA 
+    ##              Marital.StatusWidowed                            T.Stage 
+    ##                                 NA                                 NA 
+    ##                            N.Stage                         X6th.Stage 
+    ##                                 NA                                 NA 
+    ##                              Grade                            A.Stage 
+    ##                                 NA                                 NA 
+    ##                         Tumor.Size            Estrogen.StatusPositive 
+    ##                                 NA                                 NA 
+    ##        Progesterone.StatusPositive             Regional.Node.Examined 
+    ##                                 NA                                 NA 
+    ##              Reginol.Node.Positive                    Survival.Months 
+    ##                                 NA                                 NA 
+    ## Combined_Strata1_Negative_Positive Combined_Strata1_Positive_Negative 
+    ##                                 NA                                 NA 
+    ## Combined_Strata1_Positive_Positive Combined_Strata2_Negative_Negative 
+    ##                                 NA                                 NA 
+    ## Combined_Strata2_Negative_Positive Combined_Strata2_Positive_Negative 
+    ##                                 NA                                 NA 
+    ## Combined_Strata2_Positive_Positive 
+    ##                                 NA
 
 ``` r
 data_cleaned <- data_cleaned %>% 
   select(-X6th.Stage)
 test_logit_model2 <- glm(Status ~ ., family = binomial, data = data_cleaned)
+```
+
+    ## Warning: glm.fit: algorithm did not converge
+
+``` r
 logit_vif_values2 <- vif(test_logit_model2)
 print(logit_vif_values2)
 ```
 
-    ##                            GVIF Df GVIF^(1/(2*Df))
-    ## Age                    1.112827  1        1.054906
-    ## Race                   1.075632  2        1.018394
-    ## Marital.Status         1.128726  4        1.015251
-    ## T.Stage                2.674413  1        1.635363
-    ## N.Stage                3.251078  1        1.803075
-    ## Grade                  1.096509  1        1.047143
-    ## A.Stage                1.112119  1        1.054570
-    ## Tumor.Size             2.632957  1        1.622639
-    ## Estrogen.Status        1.409027  1        1.187025
-    ## Progesterone.Status    1.371578  1        1.171144
-    ## Regional.Node.Examined 1.422903  1        1.192855
-    ## Reginol.Node.Positive  3.597139  1        1.896613
-    ## Survival.Months        1.034575  1        1.017141
+    ##                                Age                          RaceOther 
+    ##                                 NA                                 NA 
+    ##                          RaceWhite              Marital.StatusMarried 
+    ##                                 NA                                 NA 
+    ##            Marital.StatusSeparated               Marital.StatusSingle 
+    ##                                 NA                                 NA 
+    ##              Marital.StatusWidowed                            T.Stage 
+    ##                                 NA                                 NA 
+    ##                            N.Stage                              Grade 
+    ##                                 NA                                 NA 
+    ##                            A.Stage                         Tumor.Size 
+    ##                                 NA                                 NA 
+    ##            Estrogen.StatusPositive        Progesterone.StatusPositive 
+    ##                                 NA                                 NA 
+    ##             Regional.Node.Examined              Reginol.Node.Positive 
+    ##                                 NA                                 NA 
+    ##                    Survival.Months Combined_Strata1_Negative_Positive 
+    ##                                 NA                                 NA 
+    ## Combined_Strata1_Positive_Negative Combined_Strata1_Positive_Positive 
+    ##                                 NA                                 NA 
+    ## Combined_Strata2_Negative_Negative Combined_Strata2_Negative_Positive 
+    ##                                 NA                                 NA 
+    ## Combined_Strata2_Positive_Negative Combined_Strata2_Positive_Positive 
+    ##                                 NA                                 NA
 
 ``` r
 # independence of errors
@@ -1392,16 +1627,16 @@ model.data <- broom::augment(test_logit_model2) %>%
 model.data %>% top_n(3, .cooksd)
 ```
 
-    ## # A tibble: 3 × 21
+    ## # A tibble: 3 × 22
     ##   Status   Age Race  Marital.Status T.Stage N.Stage Grade A.Stage Tumor.Size
     ##   <fct>  <int> <fct> <fct>            <dbl>   <dbl> <dbl>   <dbl>      <int>
-    ## 1 1         46 White Separated            2       1     3       1         25
-    ## 2 1         67 White Separated            1       1     2       1         15
-    ## 3 1         42 Other Separated            2       1     3       1         21
-    ## # ℹ 12 more variables: Estrogen.Status <fct>, Progesterone.Status <fct>,
+    ## 1 0         68 White Married              1       1     3       1          4
+    ## 2 1         43 Other Married              3       2     2       1         92
+    ## 3 0         52 Other Divorced             2       3     3       2         25
+    ## # ℹ 13 more variables: Estrogen.Status <fct>, Progesterone.Status <fct>,
     ## #   Regional.Node.Examined <int>, Reginol.Node.Positive <int>,
-    ## #   Survival.Months <int>, .fitted <dbl>, .resid <dbl>, .hat <dbl>,
-    ## #   .sigma <dbl>, .cooksd <dbl>, .std.resid <dbl>, index <int>
+    ## #   Survival.Months <int>, Combined_Strata <chr>, .fitted <dbl>, .resid <dbl>,
+    ## #   .hat <dbl>, .sigma <dbl>, .cooksd <dbl>, .std.resid <dbl>, index <int>
 
 ``` r
 ggplot(model.data, aes(index, .std.resid)) + 
@@ -1416,18 +1651,17 @@ model.data %>%
   filter(abs(.std.resid) > 3)
 ```
 
-    ## # A tibble: 5 × 21
+    ## # A tibble: 4 × 22
     ##   Status   Age Race  Marital.Status T.Stage N.Stage Grade A.Stage Tumor.Size
     ##   <fct>  <int> <fct> <fct>            <dbl>   <dbl> <dbl>   <dbl>      <int>
     ## 1 1         38 Other Divorced             1       1     2       1         20
     ## 2 1         51 White Married              1       1     2       1         18
     ## 3 1         40 Other Single               3       1     2       1         60
     ## 4 1         61 White Divorced             1       1     2       1         10
-    ## 5 1         41 White Married              2       1     2       1         35
-    ## # ℹ 12 more variables: Estrogen.Status <fct>, Progesterone.Status <fct>,
+    ## # ℹ 13 more variables: Estrogen.Status <fct>, Progesterone.Status <fct>,
     ## #   Regional.Node.Examined <int>, Reginol.Node.Positive <int>,
-    ## #   Survival.Months <int>, .fitted <dbl>, .resid <dbl>, .hat <dbl>,
-    ## #   .sigma <dbl>, .cooksd <dbl>, .std.resid <dbl>, index <int>
+    ## #   Survival.Months <int>, Combined_Strata <chr>, .fitted <dbl>, .resid <dbl>,
+    ## #   .hat <dbl>, .sigma <dbl>, .cooksd <dbl>, .std.resid <dbl>, index <int>
 
 ``` r
 # existence of of strongly influential outliers
@@ -1462,13 +1696,12 @@ model pass the test for error independence and influencial outliers.
 
 # 4. Fairness Analysis
 
-# 4. Fairness Analysis
+## Logistic Model
 
 ``` r
 # Define demographic groups to evaluate
 group_var <- "Race"  # Example: Race
 unique_groups <- unique(data_cleaned[[group_var]])
-
 # Initialize results dataframe
 fairness_results <- data.frame(
   Group = character(),
@@ -1478,7 +1711,6 @@ fairness_results <- data.frame(
   AUC = numeric(),
   stringsAsFactors = FALSE
 )
-
 # Loop through each group and calculate metrics
 for (group in unique_groups) {
   subset_data <- data_cleaned[data_cleaned[[group_var]] == group, ]
@@ -1505,7 +1737,6 @@ recall <- sum(predictions == 1 & true_labels == 1) / sum(true_labels == 1)
     )
   )
 }
-
 # Display results
 print(fairness_results)
 ```
@@ -1525,7 +1756,6 @@ positive_rates <- data_cleaned %>%
   summarise(
     PositiveRate = mean(Predicted)
   )
-
 # Display positive rates
 print(positive_rates)
 ```
@@ -1560,7 +1790,6 @@ recall_rates <- data_cleaned %>%
   summarise(
     Recall = sum(Predicted & Status == 1) / sum(Status == 1)
   )
-
 # Display recall rates
 print(recall_rates)
 ```
@@ -1582,7 +1811,6 @@ precision_rates <- data_cleaned %>%
   summarise(
     Precision = sum(Predicted & Status == 1) / sum(Predicted)
   )
-
 # Display precision rates
 print(precision_rates)
 ```
@@ -1600,7 +1828,6 @@ data_cleaned <- data_cleaned %>%
   mutate(
     Race_Grouped = ifelse(Race %in% c("Black", "Other"), "Black/Other", "White")
   )
-
 # Check the new distribution of Race_Grouped
 table(data_cleaned$Race_Grouped)
 ```
@@ -1613,7 +1840,6 @@ table(data_cleaned$Race_Grouped)
 # Define the grouped Race variable
 group_var <- "Race_Grouped"
 unique_groups <- unique(data_cleaned[[group_var]])
-
 # Initialize results dataframe
 fairness_results_grouped <- data.frame(
   Group = character(),
@@ -1623,7 +1849,6 @@ fairness_results_grouped <- data.frame(
   AUC = numeric(),
   stringsAsFactors = FALSE
 )
-
 # Loop through each group and calculate metrics
 for (group in unique_groups) {
   subset_data <- data_cleaned[data_cleaned[[group_var]] == group, ]
@@ -1650,7 +1875,6 @@ recall <- sum(predictions == 1 & true_labels == 1) / sum(true_labels == 1)
     )
   )
 }
-
 # Display results
 print(fairness_results_grouped)
 ```
@@ -1669,7 +1893,6 @@ positive_rates_grouped <- data_cleaned %>%
   summarise(
     PositiveRate = mean(Predicted)
   )
-
 # Display positive rates
 print(positive_rates_grouped)
 ```
@@ -1690,7 +1913,6 @@ recall_rates_grouped <- data_cleaned %>%
   summarise(
     Recall = sum(Predicted & Status == 1) / sum(Status == 1)
   )
-
 # Display recall rates
 print(recall_rates_grouped)
 ```
@@ -1711,7 +1933,6 @@ precision_rates_grouped <- data_cleaned %>%
   summarise(
     Precision = sum(Predicted & Status == 1) / sum(Predicted)
   )
-
 # Display precision rates
 print(precision_rates_grouped)
 ```
@@ -1753,3 +1974,130 @@ print(chisq_test_grouped)
     ## 
     ## data:  positive_rates_grouped$PositiveRate
     ## X-squared = 0.0059011, df = 1, p-value = 0.9388
+
+## Survival Analysis
+
+``` r
+# Split the dataset
+data_black_other <- data_cleaned %>%
+  filter(Race_Grouped == "Black/Other") %>%
+  droplevels()
+
+data_white <- data_cleaned %>%
+  filter(Race_Grouped == "White") %>%
+  droplevels()
+
+# Check the number of observations in each group
+cat("Number of Black/Other individuals:", nrow(data_black_other), "\n")
+```
+
+    ## Number of Black/Other individuals: 611
+
+``` r
+cat("Number of White individuals:", nrow(data_white), "\n")
+```
+
+    ## Number of White individuals: 3413
+
+``` r
+# Define the C-Index function using concordance
+compute_cindex <- function(data, time_var, status_var, predictors, strata_vars = NULL) {
+  
+  # Remove missing data
+  data <- na.omit(data)
+  
+  # Check if data is non-empty
+  if(nrow(data) == 0){
+    stop("No (non-missing) observations available after omitting missing data.")
+  }
+  
+  # Create survival object
+  surv_object <- Surv(time = data[[time_var]], event = data[[status_var]])
+  
+  # Construct formula
+  if (!is.null(strata_vars)) {
+    # Use commas to separate multiple strata variables
+    strata_formula <- paste("strata(", paste(strata_vars, collapse = ", "), ")")
+    formula_str <- paste("surv_object ~", paste(predictors, collapse = " + "), "+", strata_formula)
+  } else {
+    formula_str <- paste("surv_object ~", paste(predictors, collapse = " + "))
+  }
+  
+  # Convert to formula
+  formula <- as.formula(formula_str)
+  
+  # Fit the Cox model
+  cox_model <- tryCatch({
+    coxph(formula, data = data)
+  }, error = function(e){
+    stop("Error in fitting Cox model: ", e$message)
+  })
+  
+  # Calculate concordance
+  concordance_result <- tryCatch({
+    concordance(cox_model)
+  }, error = function(e){
+    stop("Error in calculating concordance: ", e$message)
+  })
+  
+  # Extract C-Index
+  c_index <- concordance_result$concordance
+  
+  return(list(model = cox_model, C_Index = c_index))
+}
+
+# Specify model parameters
+time_var <- "Survival.Months"  # Replace with your actual time variable
+status_var <- "Status"          # Replace with your actual event variable
+
+predictors <- c("Age", "T.Stage", "N.Stage", "Grade", 
+                "Regional.Node.Examined", "Reginol.Node.Positive")
+
+strata_vars <- c("A.Stage", "Estrogen.Status", "Progesterone.Status")
+
+# Calculate C-Index for Black/Other Group
+cindex_black_other <- tryCatch({
+  compute_cindex(
+    data = data_black_other,
+    time_var = time_var,
+    status_var = status_var,
+    predictors = predictors,
+    strata_vars = strata_vars
+  )
+}, error = function(e){
+  cat("Error for Black/Other Group:", e$message, "\n")
+  NULL
+})
+```
+
+    ## Error for Black/Other Group: Error in fitting Cox model: an id statement is required for multi-state models
+
+``` r
+# Print C-Index for Black/Other Group if no error
+if(!is.null(cindex_black_other)){
+  cat("C-Index for Black/Other Group:", round(cindex_black_other$C_Index, 3), "\n")
+}
+
+# Calculate C-Index for White Group
+cindex_white <- tryCatch({
+  compute_cindex(
+    data = data_white,
+    time_var = time_var,
+    status_var = status_var,
+    predictors = predictors,
+    strata_vars = strata_vars
+  )
+}, error = function(e){
+  cat("Error for White Group:", e$message, "\n")
+  NULL
+})
+```
+
+    ## Error for White Group: Error in fitting Cox model: an id statement is required for multi-state models
+
+``` r
+# Print C-Index for White Group if no error
+if(!is.null(cindex_white)){
+  cat("C-Index for White Group:", round(cindex_white$C_Index, 3), "\n")
+}
+```

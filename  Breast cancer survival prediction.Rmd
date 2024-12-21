@@ -323,17 +323,6 @@ print(paste("Average C-Index across 5 folds:", round(average_c_index, 3)))
 logistic_full <- glm(Status ~ . + T.Stage*Tumor.Size + N.Stage*Reginol.Node.Positive, family = binomial, data = data_cleaned)
 logistic_null <- glm(Status ~ 1, family = binomial, data = data_cleaned)
 
-# Bootstrap for Logistic Full Model
-boot_fn <- function(data, indices) {
-  data_boot <- data[indices, ]
-  model <- glm(Status ~ ., family = binomial, data = data_boot)
-  return(coef(model))
-}
-
-set.seed(123)
-boot_results <- boot(data_cleaned, boot_fn, R = 1000)
-print(boot_results)
-
 # backward selection
 backward_model <- step(logistic_full, direction = "backward")
 
@@ -663,7 +652,8 @@ ggplot(plot_data, aes(x = leverage, y = std_residuals)) +
 Here we diagnose the logistric regression model by testing its assumption. According to the results, we found non-linear relationship between continuous variables and the log odd of binary outcome in our initial model. There is multicolinearity for `T.Stage`, `N.Stage`, `X6th.Stage`. However, we found that these variables might be highly correlated since they are using similar measuring systems. By removing `X6th.Stage`, the multicolinearity no longer exist. And out initial model pass the test for error independence and influencial outliers.
 
 # 4. Fairness Analysis
-# 4. Fairness Analysis
+
+## Logistic Model
 ```{r}
 # Define demographic groups to evaluate
 group_var <- "Race"  # Example: Race
@@ -860,27 +850,113 @@ chisq_test_grouped <- chisq.test(positive_rates_grouped$PositiveRate)
 print(chisq_test_grouped)
 ```
 
-## confusion matrix
+## Survival Analysis
+
 ```{r}
-data_white <- data_cleaned %>% filter(Race == "White")
-data_other <- data_cleaned %>% filter(Race %in% c("Other", "Black"))
+# Split the dataset
+data_black_other <- data_cleaned %>%
+  filter(Race_Grouped == "Black/Other") %>%
+  droplevels()
 
-data_white$predicted_probabilities <- predict(logistics, newdata = data_white, type = "response")
-data_other$predicted_probabilities <- predict(logistics, newdata = data_other, type = "response")
+data_white <- data_cleaned %>%
+  filter(Race_Grouped == "White") %>%
+  droplevels()
 
-data_white$predicted_status <- ifelse(data_white$predicted_probabilities > 0.5, 1, 0)
-data_other$predicted_status <- ifelse(data_other$predicted_probabilities > 0.5, 1, 0)
+# Check the number of observations in each group
+cat("Number of Black/Other individuals:", nrow(data_black_other), "\n")
+cat("Number of White individuals:", nrow(data_white), "\n")
 
-confusion_white <- confusionMatrix(
-  as.factor(data_white$predicted_status),
-  as.factor(data_white$Status)
-)
-confusion_other <- confusionMatrix(
-  as.factor(data_other$predicted_status),
-  as.factor(data_other$Status)
-)
+# Define the C-Index function using concordance
+compute_cindex <- function(data, time_var, status_var, predictors, strata_vars = NULL) {
+  
+  # Remove missing data
+  data <- na.omit(data)
+  
+  # Check if data is non-empty
+  if(nrow(data) == 0){
+    stop("No (non-missing) observations available after omitting missing data.")
+  }
+  
+  # Create survival object
+  surv_object <- Surv(time = data[[time_var]], event = data[[status_var]])
+  
+  # Construct formula
+  if (!is.null(strata_vars)) {
+    # Use commas to separate multiple strata variables
+    strata_formula <- paste("strata(", paste(strata_vars, collapse = ", "), ")")
+    formula_str <- paste("surv_object ~", paste(predictors, collapse = " + "), "+", strata_formula)
+  } else {
+    formula_str <- paste("surv_object ~", paste(predictors, collapse = " + "))
+  }
+  
+  # Convert to formula
+  formula <- as.formula(formula_str)
+  
+  # Fit the Cox model
+  cox_model <- tryCatch({
+    coxph(formula, data = data)
+  }, error = function(e){
+    stop("Error in fitting Cox model: ", e$message)
+  })
+  
+  # Calculate concordance
+  concordance_result <- tryCatch({
+    concordance(cox_model)
+  }, error = function(e){
+    stop("Error in calculating concordance: ", e$message)
+  })
+  
+  # Extract C-Index
+  c_index <- concordance_result$concordance
+  
+  return(list(model = cox_model, C_Index = c_index))
+}
 
-confusion_white
-confusion_other
+# Specify model parameters
+time_var <- "Survival.Months"  # Replace with your actual time variable
+status_var <- "Status"          # Replace with your actual event variable
+
+predictors <- c("Age", "T.Stage", "N.Stage", "Grade", 
+                "Regional.Node.Examined", "Reginol.Node.Positive")
+
+strata_vars <- c("A.Stage", "Estrogen.Status", "Progesterone.Status")
+
+# Calculate C-Index for Black/Other Group
+cindex_black_other <- tryCatch({
+  compute_cindex(
+    data = data_black_other,
+    time_var = time_var,
+    status_var = status_var,
+    predictors = predictors,
+    strata_vars = strata_vars
+  )
+}, error = function(e){
+  cat("Error for Black/Other Group:", e$message, "\n")
+  NULL
+})
+
+# Print C-Index for Black/Other Group if no error
+if(!is.null(cindex_black_other)){
+  cat("C-Index for Black/Other Group:", round(cindex_black_other$C_Index, 3), "\n")
+}
+
+# Calculate C-Index for White Group
+cindex_white <- tryCatch({
+  compute_cindex(
+    data = data_white,
+    time_var = time_var,
+    status_var = status_var,
+    predictors = predictors,
+    strata_vars = strata_vars
+  )
+}, error = function(e){
+  cat("Error for White Group:", e$message, "\n")
+  NULL
+})
+
+# Print C-Index for White Group if no error
+if(!is.null(cindex_white)){
+  cat("C-Index for White Group:", round(cindex_white$C_Index, 3), "\n")
+}
 ```
 
