@@ -184,11 +184,6 @@ cat("Concordance Index:", c_index, "\n")
 cox_zph <- cox.zph(cox_model)
 print(cox_zph)
 
-
-# # Alternatively, using ggplot2 for enhanced visualization
-# ggcoxzph(cox_zph)
-
-
 # Fit Cox model with stratification on violating covariates
 cox_model_strat <- coxph(Surv(Survival.Months, Status) ~ Age + Race + Marital.Status + T.Stage + 
                           N.Stage + X6th.Stage + Grade + Tumor.Size + 
@@ -201,6 +196,120 @@ summary(cox_model_strat)
 
 cox_zph_strat <- cox.zph(cox_model_strat)
 print(cox_zph_strat)
+
+```
+
+## Model Selection
+
+```{r coxPH_model_selection_stepwise}
+full_model <- coxph(Surv(Survival.Months, Status) ~ Age + Race + Marital.Status + T.Stage + 
+                     N.Stage + X6th.Stage + Grade + Tumor.Size + 
+                     Regional.Node.Examined + Reginol.Node.Positive + 
+                     strata(A.Stage) + strata(Estrogen.Status) + 
+                     strata(Progesterone.Status), 
+                   data = data_cleaned)
+
+# Define the null model with only stratified variables
+null_model <- coxph(Surv(Survival.Months, Status) ~ strata(A.Stage) + strata(Estrogen.Status) + 
+                     strata(Progesterone.Status), 
+                   data = data_cleaned)
+
+step_backward <- MASS::stepAIC(full_model, 
+                          scope = list(lower = null_model, upper = full_model), 
+                          direction = "backward")
+summary(step_backward)
+```
+
+Here we use step forward selection with AIC to obtain an insight on effective predictor, and `Marital.Status` and `X6th.Stage` are removed according to the summary. Then we perform LASSO regularization to find most influential predictors in our Cox PH model.
+
+```{r coxPH_model_selection_lasso}
+# Define stratified variables
+strata_vars <- c("A.Stage", "Estrogen.Status", "Progesterone.Status")
+
+# Create predictor matrix excluding stratified variables
+x <- model.matrix(~ Age + Race + T.Stage + 
+                   N.Stage + Grade + Tumor.Size + 
+                   Regional.Node.Examined + Reginol.Node.Positive, 
+                 data = data_cleaned)[, -1]  # Remove intercept
+
+# Define the response variable
+y <- Surv(time = data_cleaned$Survival.Months, event = data_cleaned$Status)
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Fit LASSO Cox model with cross-validation
+lasso_cox <- cv.glmnet(x, y, family = "cox", alpha = 1, 
+                       nfolds = 10, 
+                       standardize = TRUE)
+
+# Plot cross-validated partial likelihood deviance
+plot(lasso_cox)
+title("LASSO Cox Model Cross-Validation", line = 2.5)
+
+# Optimal lambda values
+optimal_lambda_min <- lasso_cox$lambda.min
+
+# Extract coefficients at lambda.min
+coef_min <- coef(lasso_cox, s = "lambda.min")
+selected_vars_min <- rownames(coef_min)[which(coef_min != 0)]
+selected_vars_min <- selected_vars_min[selected_vars_min != "(Intercept)"]  # Remove intercept
+
+print("Selected Variables at lambda.min:")
+print(selected_vars_min)
+
+# Fit the final Cox model
+final_cox_lasso <- coxph(Surv(Survival.Months, Status) ~ Age + Race + T.Stage + N.Stage
+                         + Grade + Regional.Node.Examined + Reginol.Node.Positive + strata(A.Stage) + 
+                           strata(Estrogen.Status) + strata(Progesterone.Status), data = data_cleaned)
+summary(final_cox_lasso)
+```
+
+
+```{r cv_for_coxPH_final, warning = FALSE}
+library(timeROC)
+library(rms)
+# Combine stratified variables into a single strata identifier
+data_cleaned <- data_cleaned %>%
+  mutate(Combined_Strata = paste(A.Stage, Estrogen.Status, Progesterone.Status, sep = "_"))
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Create 5 stratified folds
+folds <- createFolds(data_cleaned$Combined_Strata, k = 5, list = TRUE, returnTrain = FALSE)
+
+# Initialize vector to store C-Index for each fold
+c_indices <- c()
+
+# Loop through each fold
+for(i in 1:length(folds)) {
+  # Define training and validation indices
+  val_indices <- folds[[i]]
+  train_indices <- setdiff(1:nrow(data_cleaned), val_indices)
+  
+  # Split the data
+  train_data <- data_cleaned[train_indices, ]
+  val_data <- data_cleaned[val_indices, ]
+  
+  # Fit the Cox model on training data
+  cox_model_cv <- coxph(Surv(Survival.Months, Status) ~ Age  + Race + T.Stage + N.Stage
+                        + Grade + Reginol.Node.Positive + Regional.Node.Examined +
+                          strata(A.Stage) + strata(Estrogen.Status) + 
+                          strata(Progesterone.Status), 
+                        data = train_data)
+  
+  # Predict risk scores on validation data
+  risk_scores <- predict(cox_model_cv, newdata = val_data, type = "risk")
+  
+  # Calculate C-Index for validation set
+  concordance_val <- survConcordance(Surv(val_data$Survival.Months, val_data$Status) ~ risk_scores)
+  c_indices <- c(c_indices, concordance_val$concordance)
+}
+
+# Calculate average C-Index across folds
+average_c_index <- mean(c_indices)
+print(paste("Average C-Index across 5 folds:", round(average_c_index, 3)))
 
 ```
 
