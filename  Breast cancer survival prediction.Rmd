@@ -427,6 +427,9 @@ logistics <- glm(Status ~ Age + Race + T.Stage + N.Stage + Grade +
     Reginol.Node.Positive + Regional.Node.Examined * 
     Reginol.Node.Positive, family = binomial, data = data_cleaned)
 summary(logistics)
+
+predicted_probabilities <- predict(logistics, newdata = data_cleaned, type = "response")
+data$predicted_status <- ifelse(predicted_probabilities > 0.5, "Alive", "Dead")
 ```
 
 # cv for glm
@@ -551,226 +554,26 @@ Here we diagnose the logistric regression model by testing its assumption. Accor
 
 # 4. Fairness Analysis
 
-# 4. Fairness Analysis
 ```{r}
-# Define demographic groups to evaluate
-group_var <- "Race"  # Example: Race
-unique_groups <- unique(data_cleaned[[group_var]])
+data_white <- data_cleaned %>% filter(Race == "White")
+data_other <- data_cleaned %>% filter(Race %in% c("Other", "Black"))
 
-# Initialize results dataframe
-fairness_results <- data.frame(
-  Group = character(),
-  Accuracy = numeric(),
-  Precision = numeric(),
-  Recall = numeric(),
-  AUC = numeric(),
-  stringsAsFactors = FALSE
+data_white$predicted_probabilities <- predict(logistics, newdata = data_white, type = "response")
+data_other$predicted_probabilities <- predict(logistics, newdata = data_other, type = "response")
+
+data_white$predicted_status <- ifelse(data_white$predicted_probabilities > 0.5, 1, 0)
+data_other$predicted_status <- ifelse(data_other$predicted_probabilities > 0.5, 1, 0)
+
+confusion_white <- confusionMatrix(
+  as.factor(data_white$predicted_status),
+  as.factor(data_white$Status)
+)
+confusion_other <- confusionMatrix(
+  as.factor(data_other$predicted_status),
+  as.factor(data_other$Status)
 )
 
-# Loop through each group and calculate metrics
-for (group in unique_groups) {
-  subset_data <- data_cleaned[data_cleaned[[group_var]] == group, ]
-  
-  # Make predictions
-  probabilities <- predict(logistics_test2, newdata = subset_data, type = "response")
-  predictions <- ifelse(probabilities > 0.5, 1, 0)
-  # True labels
-  true_labels <- subset_data$Status
-  
-predictions <- as.numeric(as.character(predictions))  # Convert from factor to numeric
-true_labels <- as.numeric(as.character(true_labels))  # Convert from factor to numeric
-accuracy <- mean(predictions == true_labels)
-precision <- sum(predictions == 1 & true_labels == 1) / sum(predictions == 1)
-recall <- sum(predictions == 1 & true_labels == 1) / sum(true_labels == 1)
-# Add to results
-  fairness_results <- rbind(
-    fairness_results,
-    data.frame(
-      Group = group,
-      Accuracy = accuracy,
-      Precision = precision,
-      Recall = recall
-    )
-  )
-}
-
-# Display results
-print(fairness_results)
+confusion_white
+confusion_other
 ```
-
-```{r}
-# Calculate positive prediction rates for each group
-positive_rates <- data_cleaned %>%
-  mutate(
-    Predicted = predict(logistics_test2, type = "response") > 0.5
-  ) %>%
-  group_by(Race) %>%
-  summarise(
-    PositiveRate = mean(Predicted)
-  )
-
-# Display positive rates
-print(positive_rates)
-
-ggplot(positive_rates, aes(x = Race, y = PositiveRate, fill = Race)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(
-    title = "Positive Prediction Rates by Race",
-    x = "Race",
-    y = "Positive Prediction Rate"
-  ) +
-  theme_minimal()
-```
-
-```{r}
-# Calculate recall (true positive rate) for each group
-recall_rates <- data_cleaned %>%
-  mutate(
-    Predicted = predict(logistics_test2, type = "response") > 0.5
-  ) %>%
-  group_by(Race) %>%
-  summarise(
-    Recall = sum(Predicted & Status == 1) / sum(Status == 1)
-  )
-
-# Display recall rates
-print(recall_rates)
-```
-
-```{r}
-# Calculate precision for each group
-precision_rates <- data_cleaned %>%
-  mutate(
-    Predicted = predict(logistics_test2, type = "response") > 0.5
-  ) %>%
-  group_by(Race) %>%
-  summarise(
-    Precision = sum(Predicted & Status == 1) / sum(Predicted)
-  )
-
-# Display precision rates
-print(precision_rates)
-```
-
-```{r}
-# Combine "Black" and "Other" into one category
-data_cleaned <- data_cleaned %>%
-  mutate(
-    Race_Grouped = ifelse(Race %in% c("Black", "Other"), "Black/Other", "White")
-  )
-
-# Check the new distribution of Race_Grouped
-table(data_cleaned$Race_Grouped)
-```
-
-```{r}
-# Define the grouped Race variable
-group_var <- "Race_Grouped"
-unique_groups <- unique(data_cleaned[[group_var]])
-
-# Initialize results dataframe
-fairness_results_grouped <- data.frame(
-  Group = character(),
-  Accuracy = numeric(),
-  Precision = numeric(),
-  Recall = numeric(),
-  AUC = numeric(),
-  stringsAsFactors = FALSE
-)
-
-# Loop through each group and calculate metrics
-for (group in unique_groups) {
-  subset_data <- data_cleaned[data_cleaned[[group_var]] == group, ]
-  # Make predictions
-  probabilities <- predict(logistics_test2, newdata = subset_data, type = "response")
-  predictions <- ifelse(probabilities > 0.5, 1, 0)
-  # True labels
-  true_labels <- subset_data$Status
-  
-predictions <- as.numeric(as.character(predictions))  # Convert from factor to numeric
-true_labels <- as.numeric(as.character(true_labels))  # Convert from factor to numeric
-accuracy <- mean(predictions == true_labels)
-precision <- sum(predictions == 1 & true_labels == 1) / sum(predictions == 1)
-recall <- sum(predictions == 1 & true_labels == 1) / sum(true_labels == 1)
-  
-  # Add to results
-  fairness_results_grouped <- rbind(
-    fairness_results_grouped,
-    data.frame(
-      Group = group,
-      Accuracy = accuracy,
-      Precision = precision,
-      Recall = recall
-    )
-  )
-}
-
-# Display results
-print(fairness_results_grouped)
-
-```
-
-```{r}
-# Calculate positive prediction rates for each group
-positive_rates_grouped <- data_cleaned %>%
-  mutate(
-    Predicted = predict(logistics_test2, type = "response") > 0.5
-  ) %>%
-  group_by(Race_Grouped) %>%
-  summarise(
-    PositiveRate = mean(Predicted)
-  )
-
-# Display positive rates
-print(positive_rates_grouped)
-```
-
-```{r}
-# Calculate recall (true positive rate) for each group
-recall_rates_grouped <- data_cleaned %>%
-  mutate(
-    Predicted = predict(logistics_test2, type = "response") > 0.5
-  ) %>%
-  group_by(Race_Grouped) %>%
-  summarise(
-    Recall = sum(Predicted & Status == 1) / sum(Status == 1)
-  )
-
-# Display recall rates
-print(recall_rates_grouped)
-```
-
-```{r}
-# Calculate precision for each group
-precision_rates_grouped <- data_cleaned %>%
-  mutate(
-    Predicted = predict(logistics_test2, type = "response") > 0.5
-  ) %>%
-  group_by(Race_Grouped) %>%
-  summarise(
-    Precision = sum(Predicted & Status == 1) / sum(Predicted)
-  )
-
-# Display precision rates
-print(precision_rates_grouped)
-```
-
-```{r}
-# Bar plot for positive prediction rates
-ggplot(positive_rates_grouped, aes(x = Race_Grouped, y = PositiveRate, fill = Race_Grouped)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  labs(
-    title = "Positive Prediction Rates by Race Group",
-    x = "Race Group",
-    y = "Positive Prediction Rate"
-  ) +
-  theme_minimal()
-```
-
-```{r}
-# Perform chi-squared test
-chisq_test_grouped <- chisq.test(positive_rates_grouped$PositiveRate)
-print(chisq_test_grouped)
-```
-
 
