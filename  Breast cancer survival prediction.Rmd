@@ -20,6 +20,7 @@ library(car)
 library(glmnet)
 library(mgcv)
 library(boot)
+library(ROSE)
 ```
 
 ```{r data_cleaning}
@@ -750,6 +751,7 @@ chisq_test_grouped <- chisq.test(positive_rates_grouped$PositiveRate)
 print(chisq_test_grouped)
 ```
 
+## confusion matrix
 ```{r}
 data_white <- data_cleaned %>% filter(Race == "White")
 data_other <- data_cleaned %>% filter(Race %in% c("Other", "Black"))
